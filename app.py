@@ -6,78 +6,67 @@ from scipy.optimize import linprog
 
 # --- Konfigurasi Halaman ---
 st.set_page_config(
-    page_title="Aplikasi Model Matematika Industri",
+    page_title="Model Matematika Industri",
     layout="wide",
     initial_sidebar_state="expanded"
 )
-st.title("Aplikasi Model Matematika dalam Industri")
+st.title("APLIKASI MODEL MATEMATIKA DALAM INDUSTRI")
 
 # --- Sidebar ---
 with st.sidebar:
     st.header("Panduan Aplikasi")
     st.markdown("""
 - **Tab 1: Optimasi Produksi**: Linear Programming (Pabrik meja & kursi)
-- **Tab 2: Model Persediaan (EOQ)**: Minimasi biaya total
-- **Tab 3: Model Antrian (M/M/1)**: Kinerja bank drive-thru
+- **Tab 2: Model Persediaan**: EOQ (Toko lampu LED)
+- **Tab 3: Model Antrian**: M/M/1 (Bank drive-thru)
 - **Tab 4: Regresi Linear**: Prediksi permintaan vs suhu udara
 
-Adjust parameter pada setiap tab, lalu lihat hasil perhitungan dan grafik interaktif.
+Sesuaikan parameter di setiap tab, lalu lihat hasil perhitungan dan grafik interaktif.
     """)
     st.markdown("---")
-    st.caption("© 2025 Matematika Terapan | Universitas Pelita Bangsa")
+    st.caption("TIF208 - Matematika Terapan | Universitas Pelita Bangsa")
 
 # --- Tab 1: Optimasi Produksi ---
 def optimasi_produksi():
     st.header("1. Optimasi Produksi (Linear Programming)")
-    st.markdown("Tentukan kombinasi produksi meja & kursi untuk memaksimalkan keuntungan.")
+    st.markdown("Pabrik memproduksi meja & kursi: maksimalkan keuntungan dengan kendala kayu & perakitan.")
 
-    # Input parameter
-    profit = {
-        'table': st.number_input("Keuntungan per meja (Rp)", 0, value=500_000, step=10_000),
-        'chair': st.number_input("Keuntungan per kursi (Rp)", 0, value=300_000, step=10_000)
-    }
-    time = {
-        'table': st.number_input("Jam kayu per meja", value=3.0, step=0.5),
-        'chair': st.number_input("Jam kayu per kursi", value=2.0, step=0.5)
-    }
-    assemble = {
-        'table': st.number_input("Jam perakitan per meja", value=2.0, step=0.5),
-        'chair': st.number_input("Jam perakitan per kursi", value=1.0, step=0.5)
-    }
-    capacity = {
-        'wood': st.number_input("Total jam kayu tersedia", value=120.0, step=10.0),
-        'assemble': st.number_input("Total jam perakitan tersedia", value=80.0, step=10.0)
-    }
+    # Input
+    p_table = st.number_input("Keuntungan meja (Rp)", 0, value=250_000, step=10_000)
+    p_chair = st.number_input("Keuntungan kursi (Rp)", 0, value=120_000, step=10_000)
+    t_table = st.number_input("Jam kayu per meja", value=3.0)
+    t_chair = st.number_input("Jam kayu per kursi", value=1.0)
+    a_table = st.number_input("Jam rakit per meja", value=2.0)
+    a_chair = st.number_input("Jam rakit per kursi", value=1.0)
+    cap_wood = st.number_input("Total jam kayu tersedia", value=120.0)
+    cap_assemble = st.number_input("Total jam rakit tersedia", value=200.0)
 
-    # Bangun LP (maximize -> minimize -profit)
-    c = [-profit['table'], -profit['chair']]
-    A = [[time['table'], time['chair']], [assemble['table'], assemble['chair']]]
-    b = [capacity['wood'], capacity['assemble']]
-    bounds = [(0, None), (0, None)]
-    res = linprog(c, A_ub=A, b_ub=b, bounds=bounds, method='highs')
+    # LP
+    c = [-p_table, -p_chair]
+    A = [[t_table, t_chair], [a_table, a_chair]]
+    b = [cap_wood, cap_assemble]
+    res = linprog(c, A_ub=A, b_ub=b, bounds=[(0, None),(0, None)], method='highs')
 
     if res.success:
         x_opt, y_opt = res.x
-        profit_opt = profit['table']*x_opt + profit['chair']*y_opt
+        profit_opt = p_table*x_opt + p_chair*y_opt
         st.subheader(f"Solusi Optimal: {x_opt:.0f} meja & {y_opt:.0f} kursi")
         st.metric("Keuntungan Maksimum", f"Rp{profit_opt:,.0f}")
     else:
-        st.error("Optimasi gagal. Periksa parameter.")
+        st.error("Optimasi gagal. Cek kembali parameter.")
         return
 
-    # Visualisasi Feasible Region
-    x_vals = np.linspace(0, x_opt*1.5, 200)
-    y_wood = (capacity['wood'] - time['table']*x_vals)/time['chair']
-    y_ass = (capacity['assemble'] - assemble['table']*x_vals)/assemble['chair']
-    y_bound = np.minimum(y_wood, y_ass)
+    # Plot
+    x = np.linspace(0, x_opt*1.5, 200)
+    y1 = (cap_wood - t_table*x)/t_chair
+    y2 = (cap_assemble - a_table*x)/a_chair
+    y_bound = np.minimum(y1, y2)
 
     fig, ax = plt.subplots()
-    ax.plot(x_vals, y_wood, label='Kendala Kayu')
-    ax.plot(x_vals, y_ass, label='Kendala Perakitan')
-    ax.fill_between(x_vals, 0, y_bound, where=y_bound>=0, alpha=0.3)
-    ax.scatter(x_opt, y_opt, color='red', zorder=5, label='Optimal')
-    ax.set_xlim(0, max(x_vals))
-    ax.set_ylim(0, max(y_bound)*1.1)
+    ax.plot(x, y1, label='Kendala Kayu')
+    ax.plot(x, y2, label='Kendala Perakitan')
+    ax.fill_between(x, 0, y_bound, where=y_bound>=0, alpha=0.3)
+    ax.scatter(x_opt, y_opt, color='red', label='Optimal')
     ax.set_xlabel('Jumlah Meja')
     ax.set_ylabel('Jumlah Kursi')
     ax.legend()
@@ -87,46 +76,44 @@ def optimasi_produksi():
 # --- Tab 2: Model Persediaan (EOQ) ---
 def model_persediaan():
     st.header("2. Model Persediaan (EOQ)")
-    st.markdown("Hitung EOQ dan total biaya persediaan.")
+    st.markdown("Toko lampu LED: tentukan EOQ untuk minimal biaya.")
 
-    D = st.number_input("Permintaan tahunan (unit)", 1, value=10_000)
-    S = st.number_input("Biaya pemesanan (Rp/pesanan)", 0, value=100_000)
-    H = st.number_input("Biaya penyimpanan (Rp/unit/tahun)", 0, value=5_000)
+    D = st.number_input("Permintaan tahunan (unit)", 1, value=2400)
+    S = st.number_input("Biaya pemesanan (Rp)", 0, value=150_000)
+    H = st.number_input("Biaya simpan per unit (Rp/tahun)", 0, value=15_000)
     lead = st.number_input("Lead time (hari)", 0, value=5)
 
-    # EOQ & ROP
     eoq = math.sqrt(2*D*S/H)
     rop = (D/365)*lead
-    total_cost = (D/eoq)*S + (eoq/2)*H
+    total = (D/eoq)*S + (eoq/2)*H
 
-    st.subheader(f"EOQ Optimal: {eoq:.0f} unit")
+    st.subheader(f"EOQ: {eoq:.0f} unit")
     st.metric("Reorder Point (ROP)", f"{rop:.0f} unit")
-    st.metric("Total Biaya Minimum", f"Rp{total_cost:,.0f}")
+    st.metric("Biaya Total Minimum", f"Rp{total:,.0f}")
 
-    # Grafik biaya
-    qs = np.linspace(eoq*0.2, eoq*3, 200)
-    cost_order = (D/qs)*S
-    cost_hold = (qs/2)*H
+    q = np.linspace(eoq*0.2, eoq*3, 200)
+    c_order = (D/q)*S
+    c_hold = (q/2)*H
     fig, ax = plt.subplots()
-    ax.plot(qs, cost_order, label='Biaya Pemesanan')
-    ax.plot(qs, cost_hold, label='Biaya Penyimpanan')
-    ax.plot(qs, cost_order+cost_hold, label='Total Biaya')
-    ax.axvline(eoq, linestyle='--', color='grey', label='EOQ')
-    ax.set_xlabel('Kuantitas Pesanan')
-    ax.set_ylabel('Biaya (Rp)')
+    ax.plot(q, c_order, label='Order Cost')
+    ax.plot(q, c_hold, label='Holding Cost')
+    ax.plot(q, c_order+c_hold, label='Total Cost')
+    ax.axvline(eoq, linestyle='--', label='EOQ')
+    ax.set_xlabel('Q')
+    ax.set_ylabel('Cost (Rp)')
     ax.legend()
-    ax.set_title('Kurva Biaya Persediaan')
+    ax.set_title('Biaya EOQ')
     st.pyplot(fig)
 
 # --- Tab 3: Model Antrian (M/M/1) ---
 def model_antrian():
     st.header("3. Model Antrian (M/M/1)")
-    st.markdown("Analisis antrian bank drive-thru.")
+    st.markdown("Bank drive-thru: analisis metrik antrian.")
 
-    lam = st.number_input("Tingkat kedatangan λ (per jam)", 0.1, value=10.0)
-    mu = st.number_input("Tingkat layanan μ (per jam)", 0.1, value=15.0)
+    lam = st.number_input("λ (arrivals/jam)", 0.1, value=40.0)
+    mu = st.number_input("μ (services/jam)", 0.1, value=45.0)
     if mu <= lam:
-        st.error("μ harus > λ untuk kestabilan sistem.")
+        st.error("μ harus > λ!")
         return
 
     rho = lam/mu
@@ -136,19 +123,18 @@ def model_antrian():
     Wq = rho/(mu-lam)
     P0 = 1-rho
 
-    st.metric("Utilisasi (ρ)", f"{rho:.2%}")
-    st.metric("Avg Pelanggan di Sistem (L)", f"{L:.2f}")
-    st.metric("Avg Pelanggan di Antrian (Lq)", f"{Lq:.2f}")
-    st.metric("Waktu di Sistem (W)", f"{W*60:.1f} menit")
-    st.metric("Waktu Antri (Wq)", f"{Wq*60:.1f} menit")
-    st.metric("Prob Sistem Kosong (P0)", f"{P0:.2%}")
+    st.metric("Utilisasi ρ", f"{rho:.2%}")
+    st.metric("Avg Sys L", f"{L:.2f}")
+    st.metric("Avg Queue Lq", f"{Lq:.2f}")
+    st.metric("Waktu Sistem W", f"{W*60:.1f} mnt")
+    st.metric("Waktu Antri Wq", f"{Wq*60:.1f} mnt")
+    st.metric("Prob Kosong P0", f"{P0:.2%}")
 
-    # Distribusi Pn
     n = np.arange(0, 15)
     p_n = (1-rho)*(rho**n)
     fig, ax = plt.subplots()
     ax.bar(n, p_n)
-    ax.set_xlabel('Jumlah Pelanggan')
+    ax.set_xlabel('n pelanggan')
     ax.set_ylabel('P(n)')
     ax.set_title('Distribusi Jumlah Pelanggan')
     st.pyplot(fig)
@@ -158,8 +144,8 @@ def model_regresi():
     st.header("4. Regresi Linear Sederhana")
     st.markdown("Prediksi penjualan berdasarkan suhu udara.")
 
-    xs = st.text_input("Suhu (°C), koma-separator", "20,22,24,26,28,30,32")
-    ys = st.text_input("Penjualan (unit), koma-separator", "200,220,260,300,340,360,380")
+    xs = st.text_input("Suhu (°C), pisahkan koma", "20,22,24,26,28,30,32")
+    ys = st.text_input("Penjualan (unit), pisahkan koma", "200,220,260,300,340,360,380")
     if st.button("Hitung Regresi"):
         try:
             X = np.array(list(map(float, xs.split(','))))
@@ -185,7 +171,8 @@ def model_regresi():
         except Exception:
             st.error("Data tidak valid. Periksa format input.")
 
-# --- Main ---
+# --- Main App ---
+
 t1, t2, t3, t4 = st.tabs([
     "Optimasi Produksi",
     "Model Persediaan",
@@ -202,4 +189,5 @@ with t4:
     model_regresi()
 
 st.divider()
-st.caption("Aplikasi ini dikembangkan untuk tugas Matematika Terapan 2025.")
+
+st.caption("© 2025 TIF208 - Matematika Terapan | Dikembangkan untuk Tugas Kelompok")
