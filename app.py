@@ -49,7 +49,22 @@ def optimasi_produksi():
     col1, col2 = st.columns([1, 2])
     
     with col1:
-        st.markdown("### Parameter Produksi")
+        st.markdown("""
+        **Apa yang Dihitung?**  
+        Aplikasi ini mencari kombinasi produksi meja dan kursi yang memberikan keuntungan tertinggi  
+        dengan kendala waktu produksi dan bahan baku kayu.
+
+        **Variabel:**  
+        - `x` = Jumlah meja  
+        - `y` = Jumlah kursi  
+
+        **Fungsi Tujuan:**  
+        Maksimalkan `Z = 250.000x + 120.000y`  
+
+        **Kendala:**  
+        1. Waktu produksi: `3x + y ≤ 120`  
+        2. Bahan baku kayu: `5x + 2y ≤ 200`  
+        """)
         profit_meja = st.number_input("Keuntungan Meja (Rp)", min_value=0, value=250000, step=10000)
         profit_kursi = st.number_input("Keuntungan Kursi (Rp)", min_value=0, value=120000, step=10000)
         waktu_meja = st.number_input("Waktu Produksi Meja (jam)", min_value=0.0, value=3.0, step=0.5)
