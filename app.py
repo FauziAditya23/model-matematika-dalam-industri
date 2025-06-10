@@ -79,70 +79,52 @@ def optimasi_produksi():
         # Kendala kayu: 5x + 2y ≤ 200
         
         # Titik A (0,0)
-        # Titik B (0, min(120, 100)) -> (0,100)
-        # Titik C: perpotongan 3x+y=120 dan 5x+2y=200
-        #   => 6x+2y=240 dan 5x+2y=200 -> x=40, y=120-120=0? -> hitung:
-        #   3x + y = 120
-        #   5x + 2y = 200
-        #   Kalikan pers1 dengan 2: 6x + 2y = 240
-        #   Kurangi dengan pers2: (6x+2y) - (5x+2y) = 240-200 => x=40
-        #   Substitusi: 3(40) + y = 120 => y=0? -> tidak, cari y: 120 - 120 = 0? 
-        #   Sebenarnya: dari pers1: y = 120 - 3x = 120 - 120 = 0
-        #   Tapi cek ke pers2: 5(40)+2(0)=200 -> tepat
-        # Titik D (40,0) -> dari kayu: 5x=200 => x=40, y=0
-        # Titik E (0,100) dari kayu: 2y=200 => y=100
-        
-        # Titik potong:
-        # A: (0,0)
-        # B: (0, min(total_waktu/waktu_kursi, total_kayu/kayu_kursi)) = (0, min(120, 100)) = (0,100)
-        # C: perpotongan dua kendala
-        #   x = (2*total_waktu - total_kayu) / (2*waktu_meja - waktu_kursi*kayu_meja/kayu_kursi) -> lebih baik hitung numerik
-        
-        # Hitung titik potong kendala
-        A = np.array([
-            [waktu_meja, waktu_kursi],
-            [kayu_meja, kayu_kursi]
-        ])
-        b = np.array([total_waktu, total_kayu])
-        try:
-            titik_potong = np.linalg.solve(A, b)
-            x_potong = titik_potong[0]
-            y_potong = titik_potong[1]
-        except:
-            x_potong = 0
-            y_potong = 0
-        
-        # Titik pojok
         titik_A = (0, 0)
+        
+        # Titik B (0, min(total_waktu/waktu_kursi, total_kayu/kayu_kursi))
         titik_B = (0, min(total_waktu/waktu_kursi, total_kayu/kayu_kursi))
-        titik_C = (x_potong, y_potong)
+        
+        # Titik D (min(total_waktu/waktu_meja, total_kayu/kayu_meja), 0)
         titik_D = (min(total_waktu/waktu_meja, total_kayu/kayu_meja), 0)
         
+        # Titik C: perpotongan dua kendala
+        try:
+            A = np.array([[waktu_meja, waktu_kursi], [kayu_meja, kayu_kursi]])
+            b = np.array([total_waktu, total_kayu])
+            titik_C = np.linalg.solve(A, b)
+            # Pastikan titik berada dalam kuadran positif
+            if titik_C[0] < 0 or titik_C[1] < 0:
+                raise np.linalg.LinAlgError
+        except np.linalg.LinAlgError:
+            # Jika tidak ada perpotongan di kuadran positif
+            titik_C = (0, 0)
+        
+        # Titik pojok yang feasible
+        titik_pokok = [
+            (titik_A[0], titik_A[1]),
+            (titik_B[0], min(titik_B[1], (total_kayu - kayu_meja*0)/kayu_kursi)),
+            (titik_C[0], titik_C[1]),
+            (min(titik_D[0], (total_waktu - waktu_kursi*0)/waktu_meja), titik_D[1])
+        ]
+        
         # Hitung keuntungan di setiap titik
-        Z_A = profit_meja * titik_A[0] + profit_kursi * titik_A[1]
-        Z_B = profit_meja * titik_B[0] + profit_kursi * titik_B[1]
-        Z_C = profit_meja * titik_C[0] + profit_kursi * titik_C[1]
-        Z_D = profit_meja * titik_D[0] + profit_kursi * titik_D[1]
+        Z_values = [
+            profit_meja * x + profit_kursi * y
+            for (x, y) in titik_pokok
+        ]
         
         # Cari solusi optimal
-        solusi = max(Z_A, Z_B, Z_C, Z_D)
-        if solusi == Z_A:
-            titik_opt = titik_A
-            produk_opt = "Tidak memproduksi"
-        elif solusi == Z_B:
-            titik_opt = titik_B
-            produk_opt = f"0 meja, {titik_B[1]:.0f} kursi"
-        elif solusi == Z_C:
-            titik_opt = titik_C
-            produk_opt = f"{titik_C[0]:.0f} meja, {titik_C[1]:.0f} kursi"
-        else:
-            titik_opt = titik_D
-            produk_opt = f"{titik_D[0]:.0f} meja, 0 kursi"
+        solusi_idx = np.argmax(Z_values)
+        solusi = Z_values[solusi_idx]
+        titik_opt = titik_pokok[solusi_idx]
         
         # Tampilkan hasil
         st.divider()
-        st.metric("Solusi Optimal", produk_opt)
+        st.metric("Solusi Optimal", f"{titik_opt[0]:.0f} meja, {titik_opt[1]:.0f} kursi")
         st.metric("Keuntungan Maksimal", f"Rp{solusi:,.0f}")
+        st.markdown(f"**Detail Perhitungan:**")
+        st.markdown(f"- Total waktu digunakan: {waktu_meja*titik_opt[0] + waktu_kursi*titik_opt[1]:.1f} jam dari {total_waktu} jam")
+        st.markdown(f"- Total kayu digunakan: {kayu_meja*titik_opt[0] + kayu_kursi*titik_opt[1]:.1f} m² dari {total_kayu} m²")
     
     with col2:
         # Visualisasi grafik
@@ -160,24 +142,27 @@ def optimasi_produksi():
         ax.plot(x_kayu, y_kayu, 'b-', label=f'Kayu: {kayu_meja}x + {kayu_kursi}y ≤ {total_kayu}')
         
         # Plot titik pojok
-        ax.plot(titik_A[0], titik_A[1], 'ko')
-        ax.plot(titik_B[0], titik_B[1], 'ko')
-        ax.plot(titik_C[0], titik_C[1], 'ro', markersize=8, label='Solusi Optimal')
-        ax.plot(titik_D[0], titik_D[1], 'ko')
+        ax.plot(titik_A[0], titik_A[1], 'ko', label='Titik A (0,0)')
+        ax.plot(titik_B[0], titik_B[1], 'ko', label='Titik B (0,{:.0f})'.format(titik_B[1]))
+        if titik_C[0] > 0 and titik_C[1] > 0:
+            ax.plot(titik_C[0], titik_C[1], 'ko', label='Titik C ({:.0f},{:.0f})'.format(titik_C[0], titik_C[1]))
+        ax.plot(titik_D[0], titik_D[1], 'ko', label='Titik D ({:.0f},0)'.format(titik_D[0]))
+        
+        # Tandai solusi optimal
+        ax.plot(titik_opt[0], titik_opt[1], 'ro', markersize=8, label='Solusi Optimal')
         
         # Area feasible
         x_feasible = np.linspace(0, min(total_waktu/waktu_meja, total_kayu/kayu_meja) + 10, 100)
-        y_feasible = np.minimum(
-            (total_waktu - waktu_meja * x_feasible) / waktu_kursi,
-            (total_kayu - kayu_meja * x_feasible) / kayu_kursi
-        )
-        ax.fill_between(x_feasible, 0, y_feasible, where=(y_feasible >= 0), alpha=0.2, color='green')
+        y_feasible_waktu = (total_waktu - waktu_meja * x_feasible) / waktu_kursi
+        y_feasible_kayu = (total_kayu - kayu_meja * x_feasible) / kayu_kursi
+        y_feasible = np.minimum(y_feasible_waktu, y_feasible_kayu)
+        ax.fill_between(x_feasible, 0, y_feasible, where=(y_feasible >= 0), alpha=0.2, color='green', label='Daerah Feasible')
         
         ax.set_xlim(0, max(total_waktu/waktu_meja, total_kayu/kayu_meja) + 10)
         ax.set_ylim(0, max(total_waktu/waktu_kursi, total_kayu/kayu_kursi) + 10)
         ax.set_xlabel('Jumlah Meja')
         ax.set_ylabel('Jumlah Kursi')
-        ax.legend()
+        ax.legend(loc='upper right')
         ax.grid(True)
         ax.set_title('Daerah Solusi Optimal Produksi Furnitur')
         st.pyplot(fig)
@@ -202,6 +187,8 @@ def model_persediaan():
         D = st.number_input("Permintaan Tahunan (unit)", min_value=1, value=2400)
         S = st.number_input("Biaya Pemesanan per Pesanan (Rp)", min_value=0, value=150000)
         H = st.number_input("Biaya Penyimpanan per Unit per Tahun (Rp)", min_value=0, value=15000)
+        lead_time = st.number_input("Lead Time (hari)", min_value=0, value=5)
+        hari_kerja = st.number_input("Hari Kerja per Tahun", min_value=1, value=365)
         
         # Hitung EOQ
         eoq = math.sqrt((2 * D * S) / H)
@@ -210,19 +197,23 @@ def model_persediaan():
         biaya_penyimpanan = (eoq / 2) * H
         total_biaya = biaya_pemesanan + biaya_penyimpanan
         
-        # Hitung ROP (asumsi lead time 5 hari, 1 tahun = 365 hari)
-        lead_time = st.number_input("Lead Time (hari)", min_value=0, value=5)
-        ROP = (D / 365) * lead_time
+        # Hitung ROP
+        permintaan_harian = D / hari_kerja
+        ROP = permintaan_harian * lead_time
+        
+        # Hitung waktu antar pesanan
+        waktu_antar_pesanan = (eoq / D) * hari_kerja
         
         # Tampilkan hasil
         st.divider()
         st.metric("EOQ Optimal", f"{eoq:.0f} unit")
         st.metric("Total Biaya Minimum", f"Rp{total_biaya:,.0f}")
         st.metric("Reorder Point (ROP)", f"{ROP:.1f} unit")
-        st.markdown(f"**Strategi**: Pesan **{eoq:.0f} unit** ketika persediaan mencapai **{ROP:.1f} unit**")
+        st.metric("Waktu Antar Pesanan", f"{waktu_antar_pesanan:.1f} hari")
+        st.markdown(f"**Strategi**: Pesan **{eoq:.0f} unit** setiap **{waktu_antar_pesanan:.1f} hari**")
     
     with col2:
-        # Visualisasi grafik
+        # Visualisasi grafik biaya
         st.markdown("### Grafik Biaya Total")
         quantities = np.linspace(50, 500, 100)
         holding_costs = (quantities / 2) * H
@@ -246,15 +237,27 @@ def model_persediaan():
         st.markdown("### Grafik Siklus Persediaan")
         fig2, ax2 = plt.subplots(figsize=(10, 4))
         
-        waktu_siklus = eoq / (D/365)  # dalam hari
-        waktu = np.linspace(0, waktu_siklus * 3, 100)
-        persediaan = np.maximum(eoq - (D/365)*waktu, 0)
+        siklus = eoq / permintaan_harian
+        waktu = np.linspace(0, siklus * 3, 100)
         
+        # Buat 3 siklus
         for i in range(3):
-            ax2.plot(waktu + i*waktu_siklus, persediaan, 'b-')
-            ax2.axvline(x=(i+1)*waktu_siklus - lead_time, color='r', linestyle='--')
+            t_start = i * siklus
+            t_order = t_start + siklus - lead_time
+            t_end = (i+1) * siklus
+            
+            # Garis persediaan
+            t_cycle = np.linspace(t_start, t_end, 100)
+            persediaan = np.maximum(eoq - permintaan_harian*(t_cycle - t_start), 0)
+            ax2.plot(t_cycle, persediaan, 'b-')
+            
+            # Garis pemesanan (ROP)
+            ax2.axvline(x=t_order, color='r', linestyle='--')
+            
+            # Tanda terima pesanan
+            ax2.axvline(x=t_start + siklus, color='g', linestyle='-')
         
-        ax2.axhline(y=ROP, color='g', linestyle='--', label='ROP')
+        ax2.axhline(y=ROP, color='orange', linestyle='--', label='ROP')
         ax2.set_xlabel('Waktu (hari)')
         ax2.set_ylabel('Tingkat Persediaan (unit)')
         ax2.set_title('Siklus Persediaan dan Reorder Point')
@@ -280,6 +283,7 @@ def model_antrian():
         st.markdown("### Parameter Antrian")
         lmbda = st.number_input("Tingkat Kedatangan (λ - pelanggan/jam)", min_value=0.1, value=40.0, step=1.0)
         mu = st.number_input("Tingkat Pelayanan (μ - pelanggan/jam)", min_value=0.1, value=45.0, step=1.0)
+        n_pelanggan = st.slider("Jumlah Pelanggan untuk Probabilitas", min_value=0, max_value=20, value=5)
         
         if mu <= lmbda:
             st.error("Tingkat pelayanan harus lebih besar dari tingkat kedatangan!")
@@ -300,22 +304,32 @@ def model_antrian():
         p0 = 1 - rho  # Probabilitas sistem kosong
         p_wait = 1 - p0  # Probabilitas harus menunggu
         
+        # Probabilitas n pelanggan dalam sistem
+        p_n = (1 - rho) * (rho ** n_pelanggan)
+        
         # Tampilkan hasil
         st.divider()
         st.metric("Utilisasi Sistem (ρ)", f"{rho:.2%}")
         st.metric("Rata-rata Pelanggan dalam Sistem", f"{L:.2f}")
-        st.metric("Rata-rata Waktu di Drive-thru", f"{W_min:.1f} menit")
+        st.metric("Rata-rata Pelanggan dalam Antrian", f"{Lq:.2f}")
+        st.metric("Rata-rata Waktu di Sistem", f"{W_min:.1f} menit")
         st.metric("Rata-rata Waktu Antrian", f"{Wq_min:.1f} menit")
-        st.metric("Probabilitas Antrian", f"{p_wait:.2%}")
+        st.metric(f"Probabilitas {n_pelanggan} Pelanggan dalam Sistem", f"{p_n:.2%}")
     
     with col2:
         # Visualisasi grafik
         st.markdown("### Distribusi Jumlah Pelanggan")
         n_values = np.arange(0, 15)
-        p_n = [(1 - rho) * (rho ** n) for n in n_values]
+        p_n_values = [(1 - rho) * (rho ** n) for n in n_values]
         
         fig, ax = plt.subplots(figsize=(10, 6))
-        ax.bar(n_values, p_n, color='skyblue')
+        bars = ax.bar(n_values, p_n_values, color='skyblue')
+        ax.bar(n_pelanggan, p_n, color='red')
+        
+        # Anotasi probabilitas
+        for i, prob in enumerate(p_n_values):
+            ax.text(i, prob + 0.01, f'{prob:.2%}', ha='center', fontsize=9)
+        
         ax.set_xlabel('Jumlah Pelanggan dalam Sistem')
         ax.set_ylabel('Probabilitas')
         ax.set_title('Distribusi Jumlah Pelanggan')
@@ -324,22 +338,26 @@ def model_antrian():
         
         # Diagram metrik
         st.markdown("### Diagram Metrik Antrian")
-        labels = ['Waktu Pelayanan', 'Waktu Antrian']
-        times = [W - Wq, Wq]
+        fig2, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
         
-        fig2, ax2 = plt.subplots()
-        wedges, texts, autotexts = ax2.pie(
-            times, 
-            labels=labels, 
-            autopct='%1.1f%%',
-            startangle=90,
-            colors=['lightgreen', 'lightcoral']
-        )
-        ax2.axis('equal')
-        ax2.set_title('Komposisi Waktu di Drive-thru')
+        # Pie chart waktu
+        waktu_labels = ['Waktu Pelayanan', 'Waktu Antrian']
+        waktu_values = [W - Wq, Wq]
+        warna = ['#66c2a5', '#fc8d62']
+        ax1.pie(waktu_values, labels=waktu_labels, autopct='%1.1f%%', 
+               startangle=90, colors=warna)
+        ax1.set_title('Komposisi Waktu di Sistem')
+        
+        # Pie chart pelanggan
+        pelanggan_labels = ['Dalam Pelayanan', 'Dalam Antrian']
+        pelanggan_values = [L - Lq, Lq]
+        ax2.pie(pelanggan_values, labels=pelanggan_labels, autopct='%1.1f%%', 
+               startangle=90, colors=warna)
+        ax2.set_title('Komposisi Pelanggan dalam Sistem')
+        
         st.pyplot(fig2)
         
-        # Interpretasi
+        # Rekomendasi
         st.markdown("**Rekomendasi:**")
         if rho < 0.7:
             st.success("Sistem berjalan efisien")
@@ -368,25 +386,31 @@ def model_keandalan():
         st.markdown("### Parameter Sistem")
         keandalan = st.number_input("Keandalan Tiap Komponen", min_value=0.1, max_value=1.0, value=0.95, step=0.01)
         n_komponen = st.slider("Jumlah Komponen Paralel", min_value=1, max_value=5, value=2)
+        waktu_operasi = st.number_input("Waktu Operasi (jam)", min_value=1, value=1000)
         
         # Hitung keandalan sistem
         # Untuk sistem paralel: R_system = 1 - (1 - R)^n
         R_system = 1 - (1 - keandalan) ** n_komponen
         
         # Hitung MTTF (asumsi failure rate konstan)
-        failure_rate = -math.log(keandalan)  # untuk periode tertentu
+        failure_rate = -math.log(keandalan) / waktu_operasi
         MTTF = 1 / failure_rate
+        
+        # Hitung availability
+        MTTR = st.number_input("MTTR (jam)", min_value=0.1, value=24.0)
+        availability = MTTF / (MTTF + MTTR)
         
         # Tampilkan hasil
         st.divider()
         st.metric("Keandalan Sistem", f"{R_system:.4f} ({R_system:.2%})")
-        st.metric("Peningkatan Keandalan", f"{(R_system - keandalan)/keandalan:.2%}")
-        st.metric("MTTF Sistem", f"{MTTF:.2f} periode")
+        st.metric("MTTF Sistem", f"{MTTF:.2f} jam")
+        st.metric("Availability Sistem", f"{availability:.2%}")
         
         # Rekomendasi
         st.markdown("**Rekomendasi Konfigurasi:**")
         if R_system < 0.99:
-            st.warning(f"Tambahkan 1 server lagi untuk meningkatkan keandalan menjadi {1 - (1-keandalan)**(n_komponen+1):.2%}")
+            rekom_n = math.ceil(math.log(1-0.99)/math.log(1-keandalan))
+            st.warning(f"Tambahkan server untuk mencapai keandalan 99%: minimal {rekom_n} server")
         else:
             st.success("Konfigurasi memadai untuk sistem kritis")
     
@@ -400,6 +424,7 @@ def model_keandalan():
         ax.plot(n_values, R_values, 'bo-', markersize=8)
         ax.axhline(y=0.99, color='r', linestyle='--', label='Standar Tinggi (99%)')
         ax.axhline(y=0.95, color='g', linestyle='--', label='Standar Minimum (95%)')
+        ax.plot(n_komponen, R_system, 'ro', markersize=10)
         
         ax.set_xlabel('Jumlah Komponen Paralel')
         ax.set_ylabel('Keandalan Sistem')
@@ -414,18 +439,26 @@ def model_keandalan():
         fig2, ax2 = plt.subplots(figsize=(8, 4))
         
         # Gambar sederhana sistem paralel
+        height = 0.8
         for i in range(n_komponen):
-            ax2.plot([0, 1], [i, i], 'b-', linewidth=2)
-            ax2.text(0.5, i, f"Server {i+1}", ha='center', va='center', 
-                    bbox=dict(facecolor='white', alpha=0.8))
+            y_pos = i - (n_komponen-1)/2
+            # Garis input-output
+            ax2.plot([0, 3], [y_pos, y_pos], 'b-', linewidth=2)
+            # Kotak server
+            ax2.add_patch(plt.Rectangle((1, y_pos-height/2), 1, height, fill=True, 
+                                      facecolor='lightblue', edgecolor='blue'))
+            ax2.text(1.5, y_pos, f"Server {i+1}", ha='center', va='center')
         
-        ax2.plot([0, 0], [0, n_komponen-1], 'k-', linewidth=3)
-        ax2.plot([1, 1], [0, n_komponen-1], 'k-', linewidth=3)
-        ax2.text(-0.1, (n_komponen-1)/2, 'Input', ha='right', va='center')
-        ax2.text(1.1, (n_komponen-1)/2, 'Output', ha='left', va='center')
+        # Garis input
+        ax2.plot([0, 0], [-2, 2], 'k-', linewidth=3)
+        ax2.text(-0.2, 0, 'Input', ha='right', va='center', fontsize=12)
         
-        ax2.set_xlim(-0.5, 1.5)
-        ax2.set_ylim(-1, n_komponen)
+        # Garis output
+        ax2.plot([3, 3], [-2, 2], 'k-', linewidth=3)
+        ax2.text(3.2, 0, 'Output', ha='left', va='center', fontsize=12)
+        
+        ax2.set_xlim(-0.5, 3.5)
+        ax2.set_ylim(-2, 2)
         ax2.axis('off')
         ax2.set_title(f'Konfigurasi {n_komponen} Server Paralel')
         st.pyplot(fig2)
