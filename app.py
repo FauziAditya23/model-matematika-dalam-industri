@@ -87,7 +87,7 @@ def optimasi_produksi():
         corner_points = [(0, 0)]
         if y_intercept1 != float('inf') and (kayu_meja*0 + kayu_kursi*y_intercept1 <= total_kayu):
             corner_points.append((0, y_intercept1))
-        if y_intercept2 != float('inf') and (jam_meja*0 + jam_kursi*y_intercept2 <= total_jam):
+        if y_intercept2 != float('inf') and (jam_meja*0 + jam_kursi*y_intercept2 <= total_jam): 
             corner_points.append((0, y_intercept2))
         if x_intercept1 != float('inf') and (kayu_meja*x_intercept1 + kayu_kursi*0 <= total_kayu):
             corner_points.append((x_intercept1, 0))
