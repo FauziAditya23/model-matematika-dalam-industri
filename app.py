@@ -134,14 +134,15 @@ def optimasi_produksi():
         
         with st.container(border=True):
             st.markdown("**Analisis Sumber Daya (Bottleneck):**")
+            # --- PERUBAHAN: Teks Analisis Diringkas ---
             if (total_jam - jam_terpakai) < 1 and (total_kayu - kayu_terpakai) < 1:
-                 st.error("**Kritis!** Kedua sumber daya (jam dan kayu) habis terpakai. Peningkatan kapasitas mutlak diperlukan untuk bertumbuh.")
+                 st.error("- **Kritis:** Kedua sumber daya (jam dan kayu) habis. Peningkatan kapasitas mutlak diperlukan.")
             elif (total_jam - jam_terpakai) < 1:
-                st.warning("**Jam Kerja adalah Kendala Utama!** Untuk meningkatkan produksi, fokus utama adalah menambah jam kerja (lembur) atau efisiensi pengrajin.")
+                st.warning("- **Kendala Utama:** Jam kerja habis. Fokus pada penambahan jam kerja atau efisiensi pengrajin.")
             elif (total_kayu - kayu_terpakai) < 1:
-                st.warning("**Stok Kayu adalah Kendala Utama!** Produksi lebih lanjut dibatasi oleh ketersediaan kayu. Cari pemasok tambahan adalah prioritas.")
+                st.warning("- **Kendala Utama:** Stok kayu habis. Prioritaskan mencari pemasok tambahan.")
             else:
-                st.info("**Kapasitas Masih Tersedia.** Kedua sumber daya (jam kerja dan kayu) masih tersisa. Ada ruang untuk meningkatkan produksi jika permintaan pasar meningkat.")
+                st.info("- **Kapasitas Tersedia:** Sumber daya masih ada. Ada ruang untuk meningkatkan produksi jika permintaan meningkat.")
 
         st.markdown("#### Visualisasi Daerah Produksi yang Layak")
         fig, ax = plt.subplots(figsize=(10, 5))
@@ -243,12 +244,13 @@ def model_persediaan():
 
         with st.container(border=True):
             st.markdown("**Analisis Kebijakan Persediaan:**")
+            # --- PERUBAHAN: Teks Analisis Diringkas ---
             if eoq > (D/4):
-                st.warning("**Frekuensi Pemesanan Rendah.** Anda memesan dalam jumlah besar tetapi jarang. Ini mengurangi biaya pemesanan tetapi meningkatkan biaya penyimpanan. Pastikan Anda memiliki ruang gudang yang cukup.")
+                st.warning("- **Frekuensi Rendah:** Pesanan dalam jumlah besar tapi jarang. Ini hemat biaya pesan, tapi boros biaya simpan.")
             elif eoq < (D/12):
-                st.info("**Frekuensi Pemesanan Tinggi.** Anda memesan dalam jumlah kecil tetapi sering. Ini efisien dari segi penyimpanan, namun pastikan proses pemesanan Anda tidak memakan banyak waktu dan biaya administrasi.")
+                st.info("- **Frekuensi Tinggi:** Pesanan dalam jumlah kecil tapi sering. Ini hemat biaya simpan, tapi boros biaya administrasi pemesanan.")
             else:
-                st.success("**Kebijakan Seimbang.** Kuantitas pesanan Anda tampak seimbang, menyeimbangkan antara biaya pesan dan biaya simpan dengan baik.")
+                st.success("- **Kebijakan Seimbang:** Kuantitas pesanan Anda menyeimbangkan biaya pesan dan biaya simpan dengan baik.")
         
         st.markdown("#### Visualisasi Analisis Biaya")
         q = np.linspace(max(1, eoq * 0.1), eoq * 2 if eoq > 0 else 200, 100)
@@ -273,6 +275,17 @@ def model_persediaan():
         ax.ticklabel_format(style='plain', axis='y')
         st.pyplot(fig)
 
+        # --- PENAMBAHAN: Penjelasan Grafik Analisis Biaya ---
+        with st.container(border=True):
+             st.markdown("**🔍 Penjelasan Grafik Analisis Biaya:**")
+             st.markdown("""
+             Grafik ini menunjukkan trade-off antara biaya pemesanan dan biaya penyimpanan.
+            - **Garis Biru (Biaya Penyimpanan):** Semakin banyak barang yang dipesan, semakin tinggi biaya untuk menyimpannya.
+            - **Garis Hijau (Biaya Pemesanan):** Semakin banyak barang yang dipesan dalam satu waktu, semakin jarang kita memesan, sehingga total biaya pemesanan tahunan menurun.
+            - **Garis Merah (Total Biaya):** Adalah penjumlahan dari kedua biaya di atas.
+            - **Garis Ungu (EOQ):** Menandai titik di mana kurva total biaya mencapai titik terendahnya. Ini adalah kuantitas pesanan yang paling efisien.
+            """)
+
         st.markdown("#### Visualisasi Siklus Persediaan")
         fig2, ax2 = plt.subplots(figsize=(10, 5))
         if siklus_pemesanan > 0 and eoq > 0:
@@ -288,7 +301,6 @@ def model_persediaan():
             ax2.axhline(y=rop, color='orange', linestyle='--', label=f'ROP ({rop:.1f} kg)')
             ax2.axhline(y=safety_stock, color='red', linestyle=':', label=f'Stok Pengaman ({safety_stock} kg)')
             
-            # Anotasi
             t_pesan = siklus_pemesanan - lead_time
             if t_pesan > 0:
                 ax2.scatter(t_pesan, rop, color='red', s=100, zorder=5)
@@ -362,7 +374,7 @@ def model_antrian():
         
         col1_res, col2_res = st.columns(2)
         with col1_res:
-            st.metric(label="� Rata-rata Mobil di Sistem (L)", value=f"{L:.2f} mobil")
+            st.metric(label="🚗 Rata-rata Mobil di Sistem (L)", value=f"{L:.2f} mobil")
             st.metric(label="⏳ Rata-rata Total Waktu (W)", value=f"{W*60:.2f} menit")
         with col2_res:
             st.metric(label="🚗 Rata-rata Panjang Antrian (Lq)", value=f"{Lq:.2f} mobil")
@@ -370,12 +382,13 @@ def model_antrian():
         
         with st.container(border=True):
             st.markdown("**Analisis Kinerja Sistem:**")
+            # --- PERUBAHAN: Teks Analisis Diringkas ---
             if rho > 0.85:
-                st.error(f"**Kondisi Kritis!** Tingkat kesibukan **({rho:.1%})** sangat tinggi. Waktu tunggu yang lama dapat menyebabkan pelanggan membatalkan pesanan dan merusak reputasi.")
+                st.error(f"- **Kondisi Kritis ({rho:.1%}):** Tingkat kesibukan sangat tinggi. Waktu tunggu yang lama berisiko merusak reputasi.")
             elif rho > 0.7:
-                st.warning(f"**Perlu Diwaspadai.** Tingkat kesibukan **({rho:.1%})** cukup tinggi. Sistem berisiko kewalahan jika ada sedikit lonjakan pelanggan atau perlambatan layanan.")
+                st.warning(f"- **Perlu Diwaspadai ({rho:.1%}):** Sistem cukup sibuk dan berisiko kewalahan jika ada lonjakan pelanggan.")
             else:
-                st.info(f"**Kinerja Sehat.** Tingkat kesibukan **({rho:.1%})** terkendali. Namun, ini mungkin juga berarti ada kapasitas layanan yang belum termanfaatkan sepenuhnya.")
+                st.info(f"- **Kinerja Sehat ({rho:.1%}):** Sistem terkendali, namun mungkin ada kapasitas layanan yang belum termanfaatkan.")
             
         st.markdown("#### Visualisasi Kinerja Antrian")
         
@@ -467,12 +480,13 @@ def model_keandalan_produksi():
         with st.container(border=True):
             st.markdown("**Analisis Dampak Kegagalan:**")
             dampak = (1 - keandalan_sistem) * 100
+            # --- PERUBAHAN: Teks Analisis Diringkas ---
             if dampak > 10:
-                st.error(f"**Sangat Berisiko!** Dengan probabilitas kegagalan **{dampak:.1f}%**, lini produksi ini kemungkinan besar akan sering mengalami henti produksi (downtime), menyebabkan kerugian signifikan.")
+                st.error(f"- **Sangat Berisiko ({dampak:.1f}%):** Lini produksi kemungkinan besar akan sering berhenti, menyebabkan kerugian signifikan.")
             elif dampak > 5:
-                st.warning(f"**Risiko Menengah.** Probabilitas kegagalan **{dampak:.1f}%** masih cukup tinggi. Perbaikan pada mesin terlemah sangat disarankan untuk menjaga stabilitas produksi.")
+                st.warning(f"- **Risiko Menengah ({dampak:.1f}%):** Probabilitas kegagalan cukup tinggi. Perbaikan pada mesin terlemah sangat disarankan.")
             else:
-                st.info(f"**Risiko Rendah.** Probabilitas kegagalan **{dampak:.1f}%** cukup terkendali. Fokus pada perawatan rutin untuk mempertahankan kinerja.")
+                st.info(f"- **Risiko Rendah ({dampak:.1f}%):** Probabilitas kegagalan terkendali. Fokus pada perawatan rutin untuk mempertahankan kinerja.")
 
         st.markdown("#### Visualisasi Dampak Keandalan Komponen")
         
