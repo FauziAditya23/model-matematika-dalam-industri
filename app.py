@@ -539,3 +539,4 @@ with tab4: model_keandalan_produksi()
 # --- FOOTER ---
 st.divider()
 st.caption("© 2025 Kelompok 9 - Matematika Terapan | Dikembangkan untuk Tugas Kelompok")
+st.caption("Fauzi Aditya | Marita Andika Putri | Naufal Khoirul Ibrahim | Poppi Marsanti Ramadanin")
