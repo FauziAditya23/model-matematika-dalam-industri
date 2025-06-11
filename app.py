@@ -26,9 +26,9 @@ with st.sidebar:
     Menganalisis kinerja sistem antrian untuk meningkatkan layanan pelanggan.
     *Studi Kasus: Layanan Drive-Thru Restoran Cepat Saji*
 
-    **4. Keandalan Sistem:**
-    Mengevaluasi dan meningkatkan keandalan sistem dengan komponen redundan.
-    *Studi Kasus: Sistem Server E-commerce*
+    **4. Keandalan Lini Produksi:**
+    Menganalisis keandalan sistem seri dan mengidentifikasi komponen terlemah.
+    *Studi Kasus: Lini Perakitan Otomotif*
     """)
     st.divider()
     st.caption("TIF208 - Matematika Terapan | Universitas Pelita Bangsa")
@@ -65,10 +65,11 @@ def optimasi_produksi():
         b_vector = np.array([total_jam, total_kayu])
 
         # Titik potong dengan sumbu
-        x_intercept1 = total_jam / jam_meja
-        y_intercept1 = total_jam / jam_kursi
-        x_intercept2 = total_kayu / kayu_meja
-        y_intercept2 = total_kayu / kayu_kursi
+        x_intercept1 = total_jam / jam_meja if jam_meja > 0 else float('inf')
+        y_intercept1 = total_jam / jam_kursi if jam_kursi > 0 else float('inf')
+        x_intercept2 = total_kayu / kayu_meja if kayu_meja > 0 else float('inf')
+        y_intercept2 = total_kayu / kayu_kursi if kayu_kursi > 0 else float('inf')
+
 
         # Titik potong antar kendala
         try:
@@ -94,7 +95,7 @@ def optimasi_produksi():
         # Cari solusi optimal
         optimal_profit = 0
         optimal_point = (0, 0)
-        for x, y in corner_points:
+        for x, y in set(corner_points):
             profit = profit_meja * x + profit_kursi * y
             if profit > optimal_profit:
                 optimal_profit = profit
@@ -116,14 +117,19 @@ def optimasi_produksi():
     with col2:
         st.markdown("#### Visualisasi Daerah Produksi yang Layak (Feasible Region)")
         fig, ax = plt.subplots(figsize=(10, 7))
-        x = np.linspace(0, max(x_intercept1, x_intercept2) * 1.1, 400)
+        
+        max_x_intercept = 1
+        if x_intercept1 != float('inf') and x_intercept2 != float('inf'):
+             max_x_intercept = max(x_intercept1, x_intercept2)
+
+        x = np.linspace(0, max_x_intercept * 1.1, 400)
         
         # Garis kendala jam kerja
-        y1 = (total_jam - jam_meja * x) / jam_kursi
+        y1 = (total_jam - jam_meja * x) / jam_kursi if jam_kursi > 0 else np.full_like(x, float('inf'))
         ax.plot(x, y1, label=f'Kendala Jam Kerja ({jam_meja}x + {jam_kursi}y <= {total_jam})')
         
         # Garis kendala kayu
-        y2 = (total_kayu - kayu_meja * x) / kayu_kursi
+        y2 = (total_kayu - kayu_meja * x) / kayu_kursi if kayu_kursi > 0 else np.full_like(x, float('inf'))
         ax.plot(x, y2, label=f'Kendala Kayu ({kayu_meja}x + {kayu_kursi}y <= {total_kayu})')
 
         # Daerah feasible
@@ -189,7 +195,8 @@ def model_persediaan():
             
     with col2:
         st.markdown("#### Visualisasi Biaya Persediaan")
-        q = np.linspace(max(1, eoq * 0.1), eoq * 2, 100)
+        q_start = 1 if eoq == 0 else eoq * 0.1
+        q = np.linspace(q_start, eoq * 2, 100)
         holding_costs = (q / 2) * H
         ordering_costs = (D / q) * S
         total_costs = holding_costs + ordering_costs
@@ -198,7 +205,8 @@ def model_persediaan():
         ax.plot(q, holding_costs, 'b-', label='Biaya Penyimpanan (Holding Cost)')
         ax.plot(q, ordering_costs, 'g-', label='Biaya Pemesanan (Ordering Cost)')
         ax.plot(q, total_costs, 'r-', linewidth=3, label='Total Biaya Persediaan')
-        ax.axvline(x=eoq, color='purple', linestyle='--', label=f'EOQ = {eoq:.0f} kg')
+        if eoq > 0:
+            ax.axvline(x=eoq, color='purple', linestyle='--', label=f'EOQ = {eoq:.0f} kg')
         
         ax.set_xlabel('Kuantitas Pemesanan (kg)')
         ax.set_ylabel('Biaya Tahunan (Rp)')
@@ -250,7 +258,7 @@ def model_antrian():
             st.metric(label="🚗 Rata-rata Mobil di Sistem (L)", value=f"{L:.2f} mobil")
             st.metric(label="⏳ Rata-rata Waktu di Sistem (W)", value=f"{W*60:.2f} menit")
         with col2_res:
-            st.metric(label="🚗 Rata-rata Mobil dalam Antrian (Lq)", value=f"{Lq:.2f} mobil")
+            st.metric(label="� Rata-rata Mobil dalam Antrian (Lq)", value=f"{Lq:.2f} mobil")
             st.metric(label="⏳ Rata-rata Waktu Menunggu (Wq)", value=f"{Wq*60:.2f} menit")
             
     with col2:
@@ -284,64 +292,73 @@ def model_antrian():
             
         st.pyplot(fig)
 
-# --- TAB 4: KEANDALAN SISTEM ---
-def model_keandalan():
-    st.header("Analisis Keandalan (Reliability) Sistem")
-    st.subheader("Studi Kasus: Sistem Server E-commerce 'BelanjaOnline'")
+# --- TAB 4: KEANDALAN LINI PRODUKSI ---
+def model_keandalan_produksi():
+    st.header("Analisis Keandalan Lini Produksi")
+    st.subheader("Studi Kasus: Lini Perakitan Otomotif 'Nusantara Motor'")
     
     col1, col2 = st.columns([1.5, 2])
     
     with col1:
         st.markdown("""
         **Skenario Bisnis:**
-        'BelanjaOnline', sebuah platform e-commerce, menggunakan beberapa server yang berjalan secara paralel (redundansi) untuk memastikan website tetap aktif meskipun salah satu server gagal. Analisis ini menghitung seberapa andal sistem secara keseluruhan.
+        'Nusantara Motor' memiliki lini perakitan yang terdiri dari beberapa stasiun kerja (mesin) yang beroperasi secara seri. Jika salah satu mesin berhenti, seluruh lini produksi akan terhenti. Analisis ini bertujuan untuk menghitung keandalan total lini produksi dan mengidentifikasi mesin mana yang menjadi 'mata rantai terlemah'.
         """)
         
         with st.expander("Parameter Model (Bisa Diubah)", expanded=True):
-            keandalan_komponen = st.slider("Keandalan per Server (R)", 0.80, 1.00, 0.95, 0.01)
-            n_komponen = st.slider("Jumlah Server Paralel (n)", 1, 10, 3)
-        
+            r1 = st.slider("Keandalan Mesin Stamping (R1)", 0.80, 1.00, 0.98, 0.01)
+            r2 = st.slider("Keandalan Mesin Welding (R2)", 0.80, 1.00, 0.99, 0.01)
+            r3 = st.slider("Keandalan Mesin Painting (R3)", 0.80, 1.00, 0.96, 0.01)
+            r4 = st.slider("Keandalan Mesin Assembly (R4)", 0.80, 1.00, 0.97, 0.01)
+
         # --- Perhitungan ---
-        # Sistem paralel: Rs = 1 - (1 - R)^n
-        kegagalan_komponen = 1 - keandalan_komponen
-        kegagalan_sistem = kegagalan_komponen ** n_komponen
-        keandalan_sistem = 1 - kegagalan_sistem
+        # Sistem seri: Rs = R1 * R2 * R3 * ... * Rn
+        reliabilities = {'Stamping': r1, 'Welding': r2, 'Painting': r3, 'Assembly': r4}
+        keandalan_sistem = np.prod(list(reliabilities.values()))
+        
+        # Cari komponen terlemah
+        weakest_link_name = min(reliabilities, key=reliabilities.get)
+        weakest_link_value = reliabilities[weakest_link_name]
 
         st.divider()
         st.subheader("Hasil Analisis Keandalan")
-        
-        if keandalan_sistem >= 0.999:
-             st.success(f"**Sistem Sangat Andal:** Dengan **{n_komponen} server**, keandalan sistem mencapai **{keandalan_sistem:.4%}**. Ini memenuhi standar industri untuk aplikasi kritikal.")
-        elif keandalan_sistem < 0.99:
-             st.warning(f"**Perlu Perhatian:** Keandalan sistem **({keandalan_sistem:.4%})** berada di bawah standar. Pertimbangkan untuk menambah jumlah server redundan untuk mengurangi risiko downtime.")
-        else:
-             st.info(f"**Cukup Andal:** Keandalan sistem **({keandalan_sistem:.4%})** cukup baik, namun peningkatan lebih lanjut dapat dipertimbangkan seiring pertumbuhan bisnis.")
 
+        st.warning(f"**Mata Rantai Terlemah:** Mesin **{weakest_link_name}** dengan keandalan **{weakest_link_value:.2%}** adalah komponen paling berisiko. Prioritaskan perawatan dan potensi peningkatan pada mesin ini.")
 
-        st.metric(label=f"📈 Keandalan Sistem (dengan {n_komponen} server)", value=f"{keandalan_sistem:.4%}")
-        st.metric(label="📉 Probabilitas Kegagalan Sistem", value=f"{kegagalan_sistem:.4%}")
-        
+        col1_res, col2_res = st.columns(2)
+        with col1_res:
+             st.metric(label="📉 Keandalan Keseluruhan Lini", value=f"{keandalan_sistem:.2%}")
+        with col2_res:
+             st.metric(label="📈 Probabilitas Kegagalan Lini", value=f"{1 - keandalan_sistem:.2%}")
+
     with col2:
-        st.markdown("#### Visualisasi Peningkatan Keandalan")
+        st.markdown("#### Visualisasi Keandalan Sistem Seri")
         
-        n_range = np.arange(1, 11)
-        R_sistem_range = 1 - (1 - keandalan_komponen) ** n_range
+        # Data untuk bar chart
+        labels = list(reliabilities.keys())
+        values = list(reliabilities.values())
+        
+        labels.append("SISTEM TOTAL")
+        values.append(keandalan_sistem)
         
         fig, ax = plt.subplots(figsize=(10, 7))
-        ax.plot(n_range, R_sistem_range, 'bo-', markersize=8, label='Keandalan Sistem vs Jml Server')
-        ax.plot(n_komponen, keandalan_sistem, 'ro', markersize=12, label='Konfigurasi Saat Ini')
         
-        # Garis standar
-        ax.axhline(y=0.999, color='green', linestyle='--', label='Standar Tinggi (99.9%)')
-        ax.axhline(y=0.99, color='orange', linestyle='--', label='Standar Minimum (99%)')
+        # Warna bar
+        bar_colors = ['blue'] * len(reliabilities)
+        weakest_idx = list(reliabilities.keys()).index(weakest_link_name)
+        bar_colors[weakest_idx] = 'red'
+        bar_colors.append('purple')
 
-        ax.set_xlabel('Jumlah Server Paralel (n)')
-        ax.set_ylabel('Keandalan Sistem (Rs)')
-        ax.set_title('Peningkatan Keandalan dengan Redundansi', fontsize=16)
-        ax.set_xticks(n_range)
-        ax.set_yticks(np.arange(keandalan_komponen, 1.01, 0.01))
-        ax.grid(True, which='both', linestyle=':')
-        ax.legend()
+        bars = ax.bar(labels, values, color=bar_colors)
+        
+        ax.set_ylabel('Tingkat Keandalan (Reliability)')
+        ax.set_title('Perbandingan Keandalan Komponen dan Sistem', fontsize=16)
+        ax.set_ylim(min(0.75, min(values) * 0.95), 1.01)
+
+        for bar in bars:
+            yval = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2.0, yval + 0.005, f'{yval:.2%}', ha='center', va='bottom')
+            
         st.pyplot(fig)
 
 
@@ -350,7 +367,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "Optimasi Produksi", 
     "Model Persediaan", 
     "Model Antrian", 
-    "Keandalan Sistem"
+    "Keandalan Lini Produksi"
 ])
 
 with tab1:
@@ -363,8 +380,9 @@ with tab3:
     model_antrian()
 
 with tab4:
-    model_keandalan()
+    model_keandalan_produksi()
 
 # --- FOOTER ---
 st.divider()
 st.caption("© 2025 TIF208 - Matematika Terapan | Dikembangkan untuk Tugas Kelompok")
+�
