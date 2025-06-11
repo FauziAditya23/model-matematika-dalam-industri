@@ -31,8 +31,7 @@ with st.sidebar:
     Mengevaluasi keandalan sistem dan mengidentifikasi titik rawan kegagalan.
     """)
     st.divider()
-    st.caption("TIF208 - Matematika Terapan | Universitas Pelita Bangsa")
-    st.caption("Versi Revisi untuk Presentasi")
+    st.caption("Teknik Informatika - Matematika Terapan | Universitas Pelita Bangsa")
 
 # --- TAB 1: OPTIMASI PRODUKSI ---
 def optimasi_produksi():
@@ -539,4 +538,4 @@ with tab4: model_keandalan_produksi()
 
 # --- FOOTER ---
 st.divider()
-st.caption("© 2025 TIF208 - Matematika Terapan | Dikembangkan untuk Tugas Kelompok")
+st.caption("© 2025 Kelompok 9 - Matematika Terapan | Dikembangkan untuk Tugas Kelompok")
