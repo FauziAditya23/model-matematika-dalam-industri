@@ -119,7 +119,7 @@ def optimasi_produksi():
                 is_optimal = (math.floor(p['x']) == optimal_point[0] and math.floor(p['y']) == optimal_point[1])
                 st.write(f"- Titik ({p['x']}, {p['y']}): Keuntungan = Rp {p['profit']:,.0f} {'**(Optimal)**' if is_optimal else ''}")
 
-        st.divider()
+    with col2:
         st.subheader("💡 Hasil dan Wawasan Bisnis")
         st.success(f"**Rekomendasi Produksi:** Untuk keuntungan maksimal, 'Jati Indah' harus memproduksi **{optimal_point[0]} Meja** dan **{optimal_point[1]} Kursi** per minggu.")
         
@@ -143,7 +143,6 @@ def optimasi_produksi():
             else:
                 st.info("- **Kapasitas Tersedia:** Sumber daya masih ada. Ada ruang untuk meningkatkan produksi jika permintaan meningkat.")
 
-    with col2:
         st.markdown("#### Visualisasi Daerah Produksi yang Layak")
         fig, ax = plt.subplots(figsize=(10, 5))
         
@@ -230,7 +229,7 @@ def model_persediaan():
             st.markdown(f"**3. Perhitungan Biaya Total Tahunan:**")
             st.latex(fr"TC = \left(\frac{{{D}}}{{{eoq:.2f}}}\right){S} + \left(\frac{{{eoq:.2f}}}{{2}}\right){H} = \text{{Rp }}{total_biaya:,.2f}")
 
-        st.divider()
+    with col2:
         st.subheader("💡 Hasil dan Wawasan Bisnis")
         st.success(f"**Kebijakan Optimal:** Pesan **{eoq:.0f} kg** biji kopi setiap kali stok mencapai **{rop:.1f} kg**.")
         
@@ -250,8 +249,7 @@ def model_persediaan():
                 st.info("- **Frekuensi Tinggi:** Pesanan dalam jumlah kecil tapi sering. Ini hemat biaya simpan, tapi boros biaya administrasi pemesanan.")
             else:
                 st.success("- **Kebijakan Seimbang:** Kuantitas pesanan Anda menyeimbangkan biaya pesan dan biaya simpan dengan baik.")
-
-    with col2:
+        
         st.markdown("#### Visualisasi Analisis Biaya")
         q = np.linspace(max(1, eoq * 0.1), eoq * 2 if eoq > 0 else 200, 100)
         holding_costs = (q / 2) * H
