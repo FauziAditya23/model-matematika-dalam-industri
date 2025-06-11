@@ -52,15 +52,14 @@ def optimasi_produksi():
             **Variabel Keputusan:**
             - $x$ = Jumlah Meja
             - $y$ = Jumlah Kursi
-
-            **Fungsi Tujuan (Maksimalkan Keuntungan):**
-            $Z = (\ text{Keuntungan per Meja} \cdot x) + (\ text{Keuntungan per Kursi} \cdot y)$
-
-            **Fungsi Kendala (Batasan Sumber Daya):**
-            1.  $(\ text{Jam per Meja} \cdot x) + (\ text{Jam per Kursi} \cdot y) \le \ text{Total Jam Tersedia}$
-            2.  $(\ text{Kayu per Meja} \cdot x) + (\ text{Kayu per Kursi} \cdot y) \le \ text{Total Kayu Tersedia}$
-            3.  $x \ge 0, y \ge 0$
             """)
+            st.markdown("**Fungsi Tujuan (Maksimalkan Keuntungan):**")
+            st.latex(r'''Z = (\text{Keuntungan per Meja} \cdot x) + (\text{Keuntungan per Kursi} \cdot y)''')
+            
+            st.markdown("**Fungsi Kendala (Batasan Sumber Daya):**")
+            st.latex(r'''1. \quad (\text{Jam per Meja} \cdot x) + (\text{Jam per Kursi} \cdot y) \le \text{Total Jam Tersedia}''')
+            st.latex(r'''2. \quad (\text{Kayu per Meja} \cdot x) + (\text{Kayu per Kursi} \cdot y) \le \text{Total Kayu Tersedia}''')
+            st.latex(r'''3. \quad x \ge 0, y \ge 0''')
 
         with st.expander("Parameter Model (Bisa Diubah)", expanded=True):
             profit_meja = st.number_input("Keuntungan per Meja (Rp)", min_value=0, value=750000, step=50000)
@@ -73,7 +72,6 @@ def optimasi_produksi():
             total_kayu = st.number_input("Total Kayu Jati Tersedia (unit)", min_value=1, value=120, step=10)
 
         # --- Perhitungan ---
-        # (Kode perhitungan tetap sama)
         A_matrix = np.array([[jam_meja, jam_kursi], [kayu_meja, kayu_kursi]])
         b_vector = np.array([total_jam, total_kayu])
         x_intercept1 = total_jam / jam_meja if jam_meja > 0 else float('inf')
@@ -119,7 +117,6 @@ def optimasi_produksi():
             st.metric(label="🌲 Utilisasi Kayu Jati", value=f"{kayu_terpakai:.1f} / {total_kayu} Unit ({kayu_terpakai/total_kayu:.1%})")
 
     with col2:
-        # (Kode visualisasi tetap sama)
         st.markdown("#### Visualisasi Daerah Produksi yang Layak (Feasible Region)")
         fig, ax = plt.subplots(figsize=(10, 7))
         max_x_intercept = 1
@@ -179,7 +176,6 @@ def model_persediaan():
             hari_kerja = st.number_input("Hari Operasional per Tahun", min_value=1, value=360)
 
         # --- Perhitungan ---
-        # (Kode perhitungan tetap sama)
         if H > 0 and D > 0:
             eoq = math.sqrt((2 * D * S) / H)
             frekuensi_pesanan = D / eoq if eoq > 0 else 0
@@ -205,7 +201,6 @@ def model_persediaan():
             st.metric(label="🔄 Siklus Pemesanan", value=f"{siklus_pemesanan:.1f} hari")
             
     with col2:
-        # (Kode visualisasi tetap sama)
         st.markdown("#### Visualisasi Biaya Persediaan")
         q_start = 1 if eoq == 0 else eoq * 0.1
         q = np.linspace(q_start, eoq * 2 if eoq > 0 else 100, 100)
@@ -260,7 +255,6 @@ def model_antrian():
             return
 
         # --- Perhitungan ---
-        # (Kode perhitungan tetap sama)
         rho = lmbda / mu
         L = rho / (1 - rho)
         Lq = (rho**2) / (1 - rho)
@@ -285,7 +279,6 @@ def model_antrian():
             st.metric(label="⏳ Rata-rata Waktu Menunggu (Wq)", value=f"{Wq*60:.2f} menit")
             
     with col2:
-        # (Kode visualisasi tetap sama)
         st.markdown("#### Visualisasi Kinerja Antrian")
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 5))
         waktu_pelayanan_menit = (1/mu) * 60
@@ -337,7 +330,6 @@ def model_keandalan_produksi():
             r4 = st.slider("Keandalan Mesin Assembly (R4)", 0.80, 1.00, 0.97, 0.01, help="Probabilitas mesin Assembly beroperasi tanpa gagal.")
 
         # --- Perhitungan ---
-        # (Kode perhitungan tetap sama)
         reliabilities = {'Stamping': r1, 'Welding': r2, 'Painting': r3, 'Assembly': r4}
         keandalan_sistem = np.prod(list(reliabilities.values()))
         weakest_link_name = min(reliabilities, key=reliabilities.get)
@@ -355,7 +347,6 @@ def model_keandalan_produksi():
              st.metric(label="📈 Probabilitas Kegagalan Lini", value=f"{1 - keandalan_sistem:.2%}")
 
     with col2:
-        # (Kode visualisasi tetap sama)
         st.markdown("#### Visualisasi Keandalan Sistem Seri")
         labels = list(reliabilities.keys())
         values = list(reliabilities.values())
