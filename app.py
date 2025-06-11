@@ -11,6 +11,7 @@ st.markdown("Sebuah aplikasi interaktif untuk memahami penerapan model matematik
 # --- SIDEBAR ---
 with st.sidebar:
     st.header("Panduan Aplikasi")
+    st.image("https://cdn-icons-png.flaticon.com/512/2740/2740943.png", width=60)
     st.markdown("""
     Aplikasi ini mendemonstrasikan empat model matematika melalui studi kasus yang relevan dengan industri di Indonesia. Setiap tab menyediakan **analisis, visualisasi, dan wawasan bisnis** yang dapat ditindaklanjuti.
     """)
@@ -229,8 +230,6 @@ def model_persediaan():
             st.latex(fr"TC = \left(\frac{{{D}}}{{{eoq:.2f}}}\right){S} + \left(\frac{{{eoq:.2f}}}{{2}}\right){H} = \text{{Rp }}{total_biaya:,.2f}")
 
         st.divider()
-        
-    with col2:
         st.subheader("💡 Hasil dan Wawasan Bisnis")
         st.success(f"**Kebijakan Optimal:** Pesan **{eoq:.0f} kg** biji kopi setiap kali stok mencapai **{rop:.1f} kg**.")
         
@@ -250,7 +249,8 @@ def model_persediaan():
                 st.info("**Frekuensi Pemesanan Tinggi.** Anda memesan dalam jumlah kecil tetapi sering. Ini efisien dari segi penyimpanan, namun pastikan proses pemesanan Anda tidak memakan banyak waktu dan biaya administrasi.")
             else:
                 st.success("**Kebijakan Seimbang.** Kuantitas pesanan Anda tampak seimbang, menyeimbangkan antara biaya pesan dan biaya simpan dengan baik.")
-
+        
+    with col2:
         st.markdown("#### Visualisasi Analisis Biaya")
         q = np.linspace(max(1, eoq * 0.1), eoq * 2 if eoq > 0 else 200, 100)
         holding_costs = (q / 2) * H
@@ -258,11 +258,11 @@ def model_persediaan():
         total_costs = holding_costs + ordering_costs
         
         fig, ax = plt.subplots(figsize=(10, 5))
-        ax.plot(q, holding_costs, 'b-', label='Biaya Penyimpanan (Naik seiring kuantitas)')
-        ax.plot(q, ordering_costs, 'g-', label='Biaya Pemesanan (Turun seiring kuantitas)')
+        ax.plot(q, holding_costs, 'b-', label='Biaya Penyimpanan')
+        ax.plot(q, ordering_costs, 'g-', label='Biaya Pemesanan')
         ax.plot(q, total_costs, 'r-', linewidth=3, label='Total Biaya')
         if eoq > 0:
-            ax.axvline(x=eoq, color='purple', linestyle='--', label=f'EOQ - Titik Biaya Terendah')
+            ax.axvline(x=eoq, color='purple', linestyle='--', label=f'EOQ')
             ax.annotate(f'Biaya Terendah\nRp {total_biaya:,.0f}', xy=(eoq, total_biaya), xytext=(eoq*1.3, total_biaya*0.6),
                         arrowprops=dict(facecolor='black', shrink=0.05), fontsize=12)
 
@@ -274,15 +274,45 @@ def model_persediaan():
         ax.ticklabel_format(style='plain', axis='y')
         st.pyplot(fig)
 
+        st.markdown("#### Visualisasi Siklus Persediaan")
+        fig2, ax2 = plt.subplots(figsize=(10, 5))
+        if siklus_pemesanan > 0 and eoq > 0:
+            t_total = siklus_pemesanan * 2
+            t = np.linspace(0, t_total, 200)
+            stok_level = []
+            for time_point in t:
+                sisa_waktu_siklus = time_point % siklus_pemesanan
+                stok = (eoq + safety_stock) - permintaan_harian * sisa_waktu_siklus
+                stok_level.append(max(stok, safety_stock))
+            
+            ax2.plot(t, stok_level, label='Tingkat Persediaan')
+            ax2.axhline(y=rop, color='orange', linestyle='--', label=f'ROP ({rop:.1f} kg)')
+            ax2.axhline(y=safety_stock, color='red', linestyle=':', label=f'Stok Pengaman ({safety_stock} kg)')
+            
+            # Anotasi
+            t_pesan = siklus_pemesanan - lead_time
+            if t_pesan > 0:
+                ax2.scatter(t_pesan, rop, color='red', s=100, zorder=5)
+                ax2.annotate('Pesan Ulang!', xy=(t_pesan, rop), xytext=(t_pesan, rop + eoq*0.3),
+                             arrowprops=dict(facecolor='red', shrink=0.05))
+
+        ax2.set_xlabel('Waktu (Hari)')
+        ax2.set_ylabel('Jumlah Stok (kg)')
+        ax2.set_title('Simulasi Siklus Persediaan', fontsize=16)
+        ax2.legend()
+        ax2.grid(True)
+        ax2.set_ylim(bottom=0)
+        st.pyplot(fig2)
+
         with st.container(border=True):
-             st.markdown("**🔍 Penjelasan Grafik:**")
+             st.markdown("**🔍 Penjelasan Grafik Siklus:**")
              st.markdown("""
-            Grafik ini menunjukkan trade-off antara biaya pemesanan dan biaya penyimpanan.
-            - **Garis Biru (Biaya Penyimpanan):** Semakin banyak barang yang dipesan, semakin tinggi biaya untuk menyimpannya.
-            - **Garis Hijau (Biaya Pemesanan):** Semakin banyak barang yang dipesan dalam satu waktu, semakin jarang kita memesan, sehingga total biaya pemesanan tahunan menurun.
-            - **Garis Merah (Total Biaya):** Adalah penjumlahan dari kedua biaya di atas.
-            - **Garis Ungu (EOQ):** Menandai titik di mana kurva total biaya mencapai titik terendahnya. Ini adalah kuantitas pesanan yang paling efisien.
-            """)
+             Grafik ini menyimulasikan pergerakan stok dari waktu ke waktu.
+             - **Garis Biru:** Menunjukkan tingkat persediaan yang terus menurun seiring penjualan harian.
+             - **Garis Oranye (ROP):** Ketika stok menyentuh garis ini, inilah saatnya untuk memesan barang baru.
+             - **Garis Merah (Stok Pengaman):** Stok minimum yang harus dijaga untuk menghindari kehabisan barang jika terjadi keterlambatan pengiriman.
+             - **Siklus:** Stok akan kembali penuh (ke level EOQ + Stok Pengaman) setelah pesanan baru tiba.
+             """)
 
 # --- TAB 3: MODEL ANTRIAN ---
 def model_antrian():
@@ -298,10 +328,13 @@ def model_antrian():
         """)
         
         with st.container(border=True):
-            st.subheader("📈 Parameter Sistem")
+            st.subheader("📈 Parameter Sistem & Biaya")
             lmbda = st.slider("Tingkat Kedatangan (λ - mobil/jam)", 1, 100, 30)
             mu = st.slider("Tingkat Pelayanan (μ - mobil/jam)", 1, 100, 35)
-            
+            st.divider()
+            Cw = st.number_input("Biaya Menunggu per Pelanggan per Jam (Rp)", min_value=0, value=25000, help="Mewakili kerugian akibat ketidakpuasan pelanggan.")
+            Cs = st.number_input("Biaya Operasional Server per Jam (Rp)", min_value=0, value=50000, help="Mewakili gaji karyawan, listrik, dll.")
+
         with st.expander("Penjelasan Rumus Model: Antrian M/M/1"):
             st.markdown("""
             Model antrian M/M/1 digunakan untuk menganalisis sistem dengan satu server (pelayan). Model ini membantu kita memahami metrik kinerja utama:
@@ -319,12 +352,16 @@ def model_antrian():
 
         rho = lmbda / mu; L = rho / (1 - rho); Lq = (rho**2) / (1 - rho); W = L / lmbda; Wq = Lq / lmbda
         
+        # Perhitungan Biaya
+        total_biaya_menunggu = Lq * Cw
+        total_biaya_layanan = Cs
+        total_biaya_sistem = total_biaya_menunggu + total_biaya_layanan
+
         with st.expander("Lihat Proses Perhitungan"):
             st.latex(fr"\rho = \frac{{{lmbda}}}{{{mu}}} = {rho:.2f} \quad (Utilisasi)")
-            st.latex(fr"L = \frac{{{rho:.2f}}}{{1 - {rho:.2f}}} = {L:.2f} \text{{ mobil di sistem}}")
             st.latex(fr"L_q = \frac{{{rho:.2f}^2}}{{1 - {rho:.2f}}} = {Lq:.2f} \text{{ mobil di antrian}}")
-            st.latex(fr"W = \frac{{{L:.2f}}}{{{lmbda}}} = {W:.3f} \text{{ jam, atau }} {W*60:.2f} \text{{ menit}}")
-            st.latex(fr"W_q = \frac{{{Lq:.2f}}}{{{lmbda}}} = {Wq:.3f} \text{{ jam, atau }} {Wq*60:.2f} \text{{ menit}}")
+            st.latex(fr"\text{{Biaya Tunggu}} = L_q \times C_w = {Lq:.2f} \times \text{{Rp }}{Cw:,.0f} = \text{{Rp }}{total_biaya_menunggu:,.0f}")
+            st.latex(fr"\text{{Biaya Total}} = \text{{Biaya Tunggu}} + \text{{Biaya Layanan}} = \text{{Rp }}{total_biaya_menunggu:,.0f} + \text{{Rp }}{Cs:,.0f} = \text{{Rp }}{total_biaya_sistem:,.0f}")
 
     with col2:
         st.subheader("💡 Hasil dan Wawasan Bisnis")
@@ -333,21 +370,18 @@ def model_antrian():
         
         col1_res, col2_res = st.columns(2)
         with col1_res:
-            st.metric(label="🚗 Rata-rata Mobil di Sistem (L)", value=f"{L:.2f} mobil")
-            st.metric(label="⏳ Rata-rata Total Waktu (W)", value=f"{W*60:.2f} menit")
-        with col2_res:
             st.metric(label="🚗 Rata-rata Panjang Antrian (Lq)", value=f"{Lq:.2f} mobil")
+        with col2_res:
             st.metric(label="⏳ Rata-rata Waktu Tunggu (Wq)", value=f"{Wq*60:.2f} menit")
-
+        
         with st.container(border=True):
-            st.markdown("**Analisis Kinerja Sistem:**")
-            if rho > 0.85:
-                st.error(f"**Kondisi Kritis!** Tingkat kesibukan **({rho:.1%})** sangat tinggi. Waktu tunggu yang lama dapat menyebabkan pelanggan membatalkan pesanan dan merusak reputasi.")
-            elif rho > 0.7:
-                st.warning(f"**Perlu Diwaspadai.** Tingkat kesibukan **({rho:.1%})** cukup tinggi. Sistem berisiko kewalahan jika ada sedikit lonjakan pelanggan atau perlambatan layanan.")
-            else:
-                st.info(f"**Kinerja Sehat.** Tingkat kesibukan **({rho:.1%})** terkendali. Namun, ini mungkin juga berarti ada kapasitas layanan yang belum termanfaatkan sepenuhnya.")
-            
+             st.markdown("**Analisis Biaya Total Sistem**")
+             c1, c2, c3 = st.columns(3)
+             c1.metric("Biaya Menunggu", f"Rp {total_biaya_menunggu:,.0f}")
+             c2.metric("Biaya Layanan", f"Rp {total_biaya_layanan:,.0f}")
+             c3.metric("Biaya Total", f"Rp {total_biaya_sistem:,.0f}")
+             st.info("Tujuan manajer adalah menemukan tingkat pelayanan (μ) yang meminimalkan **Biaya Total** ini.")
+
         st.markdown("#### Visualisasi Kinerja Antrian")
         
         fig1, ax1 = plt.subplots(figsize=(8, 4))
@@ -380,13 +414,6 @@ def model_antrian():
         ax2.set_yticklabels([])
         st.pyplot(fig2)
 
-        with st.container(border=True):
-            st.markdown("**🔍 Penjelasan Grafik:**")
-            st.markdown("""
-            - **Grafik Pie:** Membagi total waktu pelanggan menjadi dua bagian: waktu yang dihabiskan untuk benar-benar dilayani (hijau) dan waktu yang terbuang untuk menunggu dalam antrian (merah). Persentase waktu tunggu yang besar menandakan pengalaman pelanggan yang buruk.
-            - **Grafik Batang:** Menunjukkan probabilitas (kemungkinan) ada sejumlah mobil di dalam sistem. Jika bar di sebelah kanan (misalnya, 5 mobil atau lebih) memiliki nilai yang signifikan, itu berarti antrian panjang sering terjadi.
-            """)
-            
 # --- TAB 4: KEANDALAN LINI PRODUKSI ---
 def model_keandalan_produksi():
     st.header("🔗 Analisis Keandalan Lini Produksi")
