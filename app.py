@@ -4,31 +4,32 @@ import matplotlib.pyplot as plt
 import math
 
 # --- KONFIGURASI HALAMAN ---
-st.set_page_config(page_title="Dashboard Model Matematika Industri", layout="wide")
-st.title("APLIKASI MODEL MATEMATIKA DALAM INDUSTRI")
-st.markdown("Dashboard interaktif untuk memahami penerapan model matematika dalam berbagai skenario industri.")
+st.set_page_config(page_title="Dashboard Model Matematika Industri", layout="wide", initial_sidebar_state="expanded")
+st.title("📈 Dashboard Model Matematika untuk Industri")
+st.markdown("Sebuah aplikasi interaktif untuk memahami penerapan model matematika kunci dalam skenario bisnis di dunia nyata.")
 
 # --- SIDEBAR ---
 with st.sidebar:
     st.header("Panduan Aplikasi")
+    st.image("https://www.gstatic.com/mobilesdk/160503_mobilesdk/logo/2x/firebase_28.png", width=60)
     st.markdown("""
-    Aplikasi ini mendemonstrasikan empat model matematika kunci melalui studi kasus yang relevan dengan industri di Indonesia.
-
-    **1. Optimasi Produksi:**
+    Aplikasi ini mendemonstrasikan empat model matematika melalui studi kasus yang relevan dengan industri di Indonesia. Setiap tab menyediakan **analisis, visualisasi, dan wawasan bisnis** yang dapat ditindaklanjuti.
+    """)
+    st.info("**Tips:** Ubah parameter di setiap model untuk melihat bagaimana hasilnya berubah secara real-time!")
+    
+    st.markdown("""
+    ---
+    **1. 📊 Optimasi Produksi:**
     Mencari kombinasi produk yang memaksimalkan keuntungan dengan sumber daya terbatas.
-    *Studi Kasus: UKM Mebel Jati*
-
-    **2. Model Persediaan (EOQ):**
+    
+    **2. 📦 Model Persediaan (EOQ):**
     Menentukan kuantitas pesanan optimal untuk meminimalkan total biaya persediaan.
-    *Studi Kasus: Kedai Kopi Spesialti*
-
-    **3. Model Antrian:**
-    Menganalisis kinerja sistem antrian untuk meningkatkan layanan pelanggan.
-    *Studi Kasus: Layanan Drive-Thru Restoran Cepat Saji*
-
-    **4. Keandalan Lini Produksi:**
-    Menganalisis keandalan sistem seri dan mengidentifikasi komponen terlemah.
-    *Studi Kasus: Lini Perakitan Otomotif*
+    
+    **3. ⏳ Model Antrian:**
+    Menganalisis kinerja sistem antrian untuk meningkatkan layanan dan efisiensi.
+    
+    **4. 🔗 Keandalan Lini Produksi:**
+    Mengevaluasi keandalan sistem dan mengidentifikasi titik rawan kegagalan.
     """)
     st.divider()
     st.caption("TIF208 - Matematika Terapan | Universitas Pelita Bangsa")
@@ -36,7 +37,7 @@ with st.sidebar:
 
 # --- TAB 1: OPTIMASI PRODUKSI ---
 def optimasi_produksi():
-    st.header("Optimasi Produksi Furnitur")
+    st.header("📊 Optimasi Produksi Furnitur")
     st.subheader("Studi Kasus: UKM Mebel Jati 'Jati Indah'")
     
     col1, col2 = st.columns([1.5, 2])
@@ -44,7 +45,7 @@ def optimasi_produksi():
     with col1:
         st.markdown("""
         **Skenario Bisnis:**
-        'Jati Indah', sebuah UKM yang memproduksi mebel jati, ingin menentukan jumlah produksi meja dan kursi yang optimal untuk memaksimalkan keuntungan mingguan, dengan mempertimbangkan keterbatasan jam kerja pengrajin dan stok kayu jati.
+        'Jati Indah' ingin menentukan jumlah produksi meja dan kursi yang optimal untuk memaksimalkan keuntungan mingguan, dengan keterbatasan jam kerja pengrajin dan stok kayu jati.
         """)
         
         with st.expander("Rumus Model: Linear Programming"):
@@ -61,7 +62,8 @@ def optimasi_produksi():
             st.latex(r'''2. \quad (\text{Kayu}_{\text{Meja}} \cdot x) + (\text{Kayu}_{\text{Kursi}} \cdot y) \le \text{Total Kayu}''')
             st.latex(r'''3. \quad x \ge 0, y \ge 0''')
 
-        with st.expander("Parameter Model (Bisa Diubah)", expanded=True):
+        with st.container(border=True):
+            st.subheader("🛠️ Parameter Model")
             profit_meja = st.number_input("Keuntungan per Meja (Rp)", min_value=0, value=750000, step=50000)
             profit_kursi = st.number_input("Keuntungan per Kursi (Rp)", min_value=0, value=300000, step=25000)
             jam_meja = st.number_input("Jam Kerja per Meja", min_value=1.0, value=6.0, step=0.5)
@@ -87,7 +89,7 @@ def optimasi_produksi():
         corner_points = [(0, 0)]
         if y_intercept1 != float('inf') and (kayu_meja*0 + kayu_kursi*y_intercept1 <= total_kayu):
             corner_points.append((0, y_intercept1))
-        if y_intercept2 != float('inf') and (jam_meja*0 + jam_kursi*y_intercept2 <= total_jam): 
+        if y_intercept2 != float('inf') and (jam_meja*0 + jam_kursi*y_intercept2 <= total_jam):
             corner_points.append((0, y_intercept2))
         if x_intercept1 != float('inf') and (kayu_meja*x_intercept1 + kayu_kursi*0 <= total_kayu):
             corner_points.append((x_intercept1, 0))
@@ -102,10 +104,10 @@ def optimasi_produksi():
             if profit > optimal_profit:
                 optimal_profit = profit
                 optimal_point = (math.floor(x), math.floor(y))
-
-        st.divider()
-        st.subheader("Hasil dan Rekomendasi")
-        st.success(f"**Rekomendasi Produksi:** Untuk mencapai keuntungan maksimal, 'Jati Indah' harus memproduksi **{optimal_point[0]} Meja** dan **{optimal_point[1]} Kursi** per minggu.")
+        
+    with col2:
+        st.subheader("💡 Hasil dan Wawasan Bisnis")
+        st.success(f"**Rekomendasi Produksi:** Untuk keuntungan maksimal, 'Jati Indah' harus memproduksi **{optimal_point[0]} Meja** dan **{optimal_point[1]} Kursi** per minggu.")
         
         col1_res, col2_res = st.columns(2)
         with col1_res:
@@ -113,23 +115,31 @@ def optimasi_produksi():
         with col2_res:
             jam_terpakai = jam_meja * optimal_point[0] + jam_kursi * optimal_point[1]
             kayu_terpakai = kayu_meja * optimal_point[0] + kayu_kursi * optimal_point[1]
-            st.metric(label="🛠️ Utilisasi Jam Kerja", value=f"{jam_terpakai:.1f} / {total_jam} Jam ({jam_terpakai/total_jam:.1%})")
-            st.metric(label="🌲 Utilisasi Kayu Jati", value=f"{kayu_terpakai:.1f} / {total_kayu} Unit ({kayu_terpakai/total_kayu:.1%})")
+            st.metric(label="🛠️ Utilisasi Jam Kerja", value=f"{jam_terpakai:.1f} / {total_jam} Jam", help=f"{jam_terpakai/total_jam:.1%} terpakai")
+            st.metric(label="🌲 Utilisasi Kayu Jati", value=f"{kayu_terpakai:.1f} / {total_kayu} Unit", help=f"{kayu_terpakai/total_kayu:.1%} terpakai")
+        
+        with st.container(border=True):
+            st.markdown("**Analisis Sumber Daya:**")
+            if (total_jam - jam_terpakai) < 1:
+                st.warning("**Jam Kerja adalah Kendala Utama (Bottleneck)!** Sumber daya waktu habis terpakai. Pertimbangkan untuk menambah jam lembur atau pengrajin baru untuk meningkatkan produksi.")
+            elif (total_kayu - kayu_terpakai) < 1:
+                st.warning("**Stok Kayu adalah Kendala Utama (Bottleneck)!** Stok kayu habis terpakai. Pertimbangkan mencari pemasok kayu tambahan untuk meningkatkan kapasitas.")
+            else:
+                st.info("Kedua sumber daya (jam kerja dan kayu) masih tersisa. Ada ruang untuk meningkatkan produksi jika permintaan meningkat.")
 
-    with col2:
-        st.markdown("#### Visualisasi Daerah Produksi yang Layak (Feasible Region)")
-        fig, ax = plt.subplots(figsize=(10, 7))
+        st.markdown("#### Visualisasi Daerah Produksi yang Layak")
+        fig, ax = plt.subplots(figsize=(10, 6))
         max_x_intercept = 1
         if x_intercept1 != float('inf') and x_intercept2 != float('inf'):
-             max_x_intercept = max(x_intercept1, x_intercept2)
+             max_x_intercept = max(x_intercept1, x_intercept2) if max(x_intercept1, x_intercept2) > 0 else 50
         x = np.linspace(0, max_x_intercept * 1.1, 400)
         y1 = (total_jam - jam_meja * x) / jam_kursi if jam_kursi > 0 else np.full_like(x, float('inf'))
-        ax.plot(x, y1, label=f'Kendala Jam Kerja ({jam_meja}x + {jam_kursi}y <= {total_jam})')
+        ax.plot(x, y1, label=f'Batas Jam Kerja')
         y2 = (total_kayu - kayu_meja * x) / kayu_kursi if kayu_kursi > 0 else np.full_like(x, float('inf'))
-        ax.plot(x, y2, label=f'Kendala Kayu ({kayu_meja}x + {kayu_kursi}y <= {total_kayu})')
+        ax.plot(x, y2, label=f'Batas Stok Kayu')
         y_feasible = np.minimum(y1, y2)
         ax.fill_between(x, 0, y_feasible, where=(y_feasible>=0), color='green', alpha=0.2, label='Daerah Produksi Layak')
-        ax.plot(optimal_point[0], optimal_point[1], 'ro', markersize=10, label=f'Titik Optimal ({optimal_point[0]}, {optimal_point[1]})')
+        ax.plot(optimal_point[0], optimal_point[1], 'ro', markersize=12, label=f'Titik Optimal ({optimal_point[0]}, {optimal_point[1]})')
         ax.set_xlabel('Jumlah Meja (x)')
         ax.set_ylabel('Jumlah Kursi (y)')
         ax.set_title('Grafik Optimasi Produksi Mebel', fontsize=16)
@@ -139,9 +149,10 @@ def optimasi_produksi():
         ax.set_ylim(bottom=0)
         st.pyplot(fig)
 
+
 # --- TAB 2: MODEL PERSEDIAAN ---
 def model_persediaan():
-    st.header("Manajemen Persediaan (EOQ)")
+    st.header("📦 Manajemen Persediaan (EOQ)")
     st.subheader("Studi Kasus: Kedai Kopi 'Kopi Kita'")
 
     col1, col2 = st.columns([1.5, 2])
@@ -149,32 +160,21 @@ def model_persediaan():
     with col1:
         st.markdown("""
         **Skenario Bisnis:**
-        'Kopi Kita', sebuah kedai kopi spesialti, perlu menentukan jumlah pesanan biji kopi impor yang optimal. Tujuannya adalah untuk meminimalkan total biaya yang mencakup biaya pemesanan (pengiriman, bea cukai) dan biaya penyimpanan (sewa gudang, pendingin).
+        'Kopi Kita' perlu menentukan jumlah pesanan biji kopi impor yang optimal untuk meminimalkan total biaya persediaan (biaya pesan dan biaya simpan).
         """)
         
         with st.expander("Rumus Model: Economic Order Quantity (EOQ)"):
-            st.markdown("**Variabel:**")
-            st.markdown("- $Q^*$ = Kuantitas Pemesanan Optimal (EOQ)")
-            st.markdown("- $D$ = Permintaan Tahunan")
-            st.markdown("- $S$ = Biaya Pemesanan per Pesanan")
-            st.markdown("- $H$ = Biaya Penyimpanan per Unit per Tahun")
-            
-            st.markdown("**Rumus Utama:**")
-            st.latex(r''' Q^* = \sqrt{\frac{2DS}{H}} ''')
-            
-            st.markdown("**Biaya Total Persediaan:**")
-            st.latex(r''' TC = \left(\frac{D}{Q^*}\right)S + \left(\frac{Q^*}{2}\right)H ''')
-            
-            st.markdown("**Titik Pemesanan Ulang (Reorder Point):**")
-            st.latex(r''' ROP = (\text{Permintaan Harian}) \times (\text{Lead Time}) ''')
+            st.markdown("**Variabel:** $Q^*$ (EOQ), $D$ (Permintaan Tahunan), $S$ (Biaya Pesan), $H$ (Biaya Simpan)")
+            st.latex(r''' Q^* = \sqrt{\frac{2DS}{H}} \quad | \quad ROP = (D/360) \times \text{Lead Time} + \text{Safety Stock}''')
 
-        with st.expander("Parameter Model (Bisa Diubah)", expanded=True):
+        with st.container(border=True):
+            st.subheader("⚙️ Parameter Model")
             D = st.number_input("Permintaan Tahunan (kg)", min_value=1, value=1200)
             S = st.number_input("Biaya Pemesanan per Pesanan (Rp)", min_value=0, value=500000)
             H = st.number_input("Biaya Penyimpanan per kg per Tahun (Rp)", min_value=0, value=25000)
             lead_time = st.number_input("Lead Time Pengiriman (hari)", min_value=1, value=14)
-            hari_kerja = st.number_input("Hari Operasional per Tahun", min_value=1, value=360)
-
+            safety_stock = st.number_input("Stok Pengaman (Safety Stock) (kg)", min_value=0, value=10, help="Stok tambahan untuk mengantisipasi ketidakpastian permintaan atau keterlambatan.")
+        
         # --- Perhitungan ---
         if H > 0 and D > 0:
             eoq = math.sqrt((2 * D * S) / H)
@@ -182,48 +182,55 @@ def model_persediaan():
             biaya_pemesanan_tahunan = frekuensi_pesanan * S
             biaya_penyimpanan_tahunan = (eoq / 2) * H
             total_biaya = biaya_pemesanan_tahunan + biaya_penyimpanan_tahunan
-            permintaan_harian = D / hari_kerja
-            rop = permintaan_harian * lead_time
-            siklus_pemesanan = hari_kerja / frekuensi_pesanan if frekuensi_pesanan > 0 else 0
+            permintaan_harian = D / 360
+            rop = (permintaan_harian * lead_time) + safety_stock
+            siklus_pemesanan = 360 / frekuensi_pesanan if frekuensi_pesanan > 0 else 0
         else:
             eoq = 0; total_biaya = 0; rop = 0; siklus_pemesanan = 0
 
         st.divider()
-        st.subheader("Hasil dan Rekomendasi")
-        st.success(f"**Kebijakan Persediaan Optimal:** Pesan **{eoq:.0f} kg** biji kopi setiap kali persediaan mencapai **{rop:.1f} kg**. Ini setara dengan memesan kira-kira setiap **{siklus_pemesanan:.1f} hari**.")
-
+        st.subheader("💡 Hasil dan Wawasan Bisnis")
+        st.success(f"**Kebijakan Optimal:** Pesan **{eoq:.0f} kg** biji kopi setiap kali stok mencapai **{rop:.1f} kg**.")
+        
         col1_res, col2_res = st.columns(2)
         with col1_res:
             st.metric(label="📦 Kuantitas Pesanan Optimal (EOQ)", value=f"{eoq:.0f} kg")
-            st.metric(label="ROP (Titik Pemesanan Ulang)", value=f"{rop:.1f} kg")
+            st.metric(label="🎯 Titik Pemesanan Ulang (ROP)", value=f"{rop:.1f} kg")
         with col2_res:
-            st.metric(label="💰 Total Biaya Persediaan Minimum", value=f"Rp {total_biaya:,.0f}")
-            st.metric(label="🔄 Siklus Pemesanan", value=f"{siklus_pemesanan:.1f} hari")
+            st.metric(label="💰 Total Biaya Persediaan Tahunan", value=f"Rp {total_biaya:,.0f}")
+            st.metric(label="🔄 Siklus Pemesanan", value=f"~{siklus_pemesanan:.1f} hari")
             
     with col2:
-        st.markdown("#### Visualisasi Biaya Persediaan")
-        q_start = 1 if eoq == 0 else eoq * 0.1
-        q = np.linspace(q_start, eoq * 2 if eoq > 0 else 100, 100)
+        st.markdown("#### Visualisasi Analisis Biaya")
+        q = np.linspace(max(1, eoq * 0.1), eoq * 2 if eoq > 0 else 200, 100)
         holding_costs = (q / 2) * H
         ordering_costs = (D / q) * S
         total_costs = holding_costs + ordering_costs
-        fig, ax = plt.subplots(figsize=(10, 7))
-        ax.plot(q, holding_costs, 'b-', label='Biaya Penyimpanan (Holding Cost)')
-        ax.plot(q, ordering_costs, 'g-', label='Biaya Pemesanan (Ordering Cost)')
-        ax.plot(q, total_costs, 'r-', linewidth=3, label='Total Biaya Persediaan')
+        
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.plot(q, holding_costs, 'b-', label='Biaya Penyimpanan (Naik seiring kuantitas)')
+        ax.plot(q, ordering_costs, 'g-', label='Biaya Pemesanan (Turun seiring kuantitas)')
+        ax.plot(q, total_costs, 'r-', linewidth=3, label='Total Biaya')
         if eoq > 0:
-            ax.axvline(x=eoq, color='purple', linestyle='--', label=f'EOQ = {eoq:.0f} kg')
+            ax.axvline(x=eoq, color='purple', linestyle='--', label=f'EOQ - Titik Biaya Terendah')
+            ax.annotate(f'Biaya Terendah\nRp {total_biaya:,.0f}', xy=(eoq, total_biaya), xytext=(eoq*1.3, total_biaya*0.6),
+                        arrowprops=dict(facecolor='black', shrink=0.05), fontsize=12)
+
         ax.set_xlabel('Kuantitas Pemesanan (kg)')
         ax.set_ylabel('Biaya Tahunan (Rp)')
-        ax.set_title('Grafik Analisis Biaya Persediaan (EOQ)', fontsize=16)
+        ax.set_title('Analisis Biaya Persediaan (EOQ)', fontsize=16)
         ax.legend()
         ax.grid(True)
         ax.ticklabel_format(style='plain', axis='y')
         st.pyplot(fig)
 
+        with st.container(border=True):
+             st.markdown("**Wawasan Tambahan:** Titik EOQ adalah titik di mana **Biaya Penyimpanan** dan **Biaya Pemesanan** hampir sama, menghasilkan biaya total terendah. Stok pengaman tidak mempengaruhi EOQ, tetapi meningkatkan ROP untuk melindungi dari kehabisan stok.")
+
+
 # --- TAB 3: MODEL ANTRIAN ---
 def model_antrian():
-    st.header("Analisis Sistem Antrian")
+    st.header("⏳ Analisis Sistem Antrian")
     st.subheader("Studi Kasus: Drive-Thru 'Ayam Goreng Juara' saat Jam Sibuk")
     
     col1, col2 = st.columns([1.5, 2])
@@ -231,22 +238,15 @@ def model_antrian():
     with col1:
         st.markdown("""
         **Skenario Bisnis:**
-        Manajemen 'Ayam Goreng Juara' ingin menganalisis efisiensi layanan drive-thru mereka selama jam makan siang (12:00-13:00). Data menunjukkan tingkat kedatangan dan pelayanan tertentu. Analisis ini bertujuan untuk memahami pengalaman pelanggan dan efisiensi operasional.
+        Manajemen 'Ayam Goreng Juara' ingin menganalisis efisiensi layanan drive-thru mereka. Analisis ini bertujuan untuk menyeimbangkan antara biaya operasional dan kepuasan pelanggan (waktu tunggu).
         """)
         
         with st.expander("Rumus Model: Antrian M/M/1"):
-            st.markdown("**Variabel:**")
-            st.markdown("- $\lambda$ (Lambda) = Tingkat kedatangan rata-rata")
-            st.markdown("- $\mu$ (Mu) = Tingkat pelayanan rata-rata")
-            
-            st.markdown("**Rumus Kinerja:**")
-            st.latex(r''' \text{Utilisasi Sistem } (\rho) = \frac{\lambda}{\mu} ''')
-            st.latex(r''' \text{Rata-rata di Sistem } (L) = \frac{\lambda}{\mu - \lambda} = \frac{\rho}{1 - \rho} ''')
-            st.latex(r''' \text{Rata-rata di Antrian } (L_q) = \frac{\lambda^2}{\mu(\mu - \lambda)} = \frac{\rho^2}{1 - \rho} ''')
-            st.latex(r''' \text{Waktu Rata-rata di Sistem } (W) = \frac{1}{\mu - \lambda} ''')
-            st.latex(r''' \text{Waktu Rata-rata di Antrian } (W_q) = \frac{\lambda}{\mu(\mu - \lambda)} ''')
+            st.markdown("**Variabel:** $\lambda$ (Tingkat Kedatangan), $\mu$ (Tingkat Pelayanan)")
+            st.latex(r''' \rho = \frac{\lambda}{\mu} \quad | \quad L = \frac{\rho}{1 - \rho} \quad | \quad W = \frac{L}{\lambda} ''')
 
-        with st.expander("Parameter Model (Bisa Diubah)", expanded=True):
+        with st.container(border=True):
+            st.subheader("📈 Parameter Sistem")
             lmbda = st.slider("Tingkat Kedatangan (λ - mobil/jam)", 1, 100, 30)
             mu = st.slider("Tingkat Pelayanan (μ - mobil/jam)", 1, 100, 35)
             
@@ -255,55 +255,61 @@ def model_antrian():
             return
 
         # --- Perhitungan ---
-        rho = lmbda / mu
-        L = rho / (1 - rho)
-        Lq = (rho**2) / (1 - rho)
-        W = (1 / mu) / (1 - rho)
-        Wq = W - (1 / mu)
-        p0 = 1 - rho
+        rho = lmbda / mu; L = rho / (1 - rho); Lq = (rho**2) / (1 - rho)
+        W = L / lmbda; Wq = Lq / lmbda
 
         st.divider()
-        st.subheader("Hasil Analisis Kinerja")
-        
+        st.subheader("💡 Hasil dan Wawasan Bisnis")
+
         if rho > 0.85:
-             st.warning(f"**Peringatan:** Utilisasi sistem **({rho:.1%})** sangat tinggi. Antrian panjang dan waktu tunggu lama kemungkinan besar terjadi, berisiko membuat pelanggan tidak puas.")
+             st.warning(f"**Risiko Tinggi:** Utilisasi **({rho:.1%})** sangat tinggi. Antrian panjang dan waktu tunggu lama berisiko membuat pelanggan kecewa dan pergi.")
+        elif rho > 0.7:
+            st.info(f"**Cukup Sibuk:** Utilisasi **({rho:.1%})** berada pada tingkat yang sibuk. Kinerja baik, namun perlu diawasi saat jam puncak.")
         else:
-             st.success(f"**Informasi:** Utilisasi sistem **({rho:.1%})** berada pada tingkat yang sehat. Sistem mampu menangani arus pelanggan dengan baik.")
+             st.success(f"**Efisien:** Utilisasi **({rho:.1%})** berada pada tingkat yang sehat. Sistem mampu menangani pelanggan dengan cepat.")
 
         col1_res, col2_res = st.columns(2)
         with col1_res:
             st.metric(label="🚗 Rata-rata Mobil di Sistem (L)", value=f"{L:.2f} mobil")
-            st.metric(label="⏳ Rata-rata Waktu di Sistem (W)", value=f"{W*60:.2f} menit")
+            st.metric(label="⏳ Rata-rata Total Waktu (W)", value=f"{W*60:.2f} menit")
         with col2_res:
-            st.metric(label="🚗 Rata-rata Mobil dalam Antrian (Lq)", value=f"{Lq:.2f} mobil")
-            st.metric(label="⏳ Rata-rata Waktu Menunggu (Wq)", value=f"{Wq*60:.2f} menit")
+            st.metric(label="🚗 Rata-rata Panjang Antrian (Lq)", value=f"{Lq:.2f} mobil")
+            st.metric(label="⏳ Rata-rata Waktu Tunggu (Wq)", value=f"{Wq*60:.2f} menit")
             
     with col2:
         st.markdown("#### Visualisasi Kinerja Antrian")
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 5))
+        
+        # Pie chart komposisi waktu
+        fig, ax1 = plt.subplots(figsize=(8, 4))
         waktu_pelayanan_menit = (1/mu) * 60
         waktu_tunggu_menit = Wq * 60
-        labels = ['Waktu Menunggu', 'Waktu Dilayani']
+        labels = ['Waktu Menunggu di Antrian', 'Waktu Dilayani']
         sizes = [waktu_tunggu_menit, waktu_pelayanan_menit]
-        colors = ['#ff9999','#66b3ff']
+        colors = ['#ff6347','#90ee90']
         explode = (0.1, 0)
+        
         ax1.pie(sizes, explode=explode, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors)
         ax1.axis('equal')
-        ax1.set_title("Komposisi Total Waktu Pelanggan")
-        labels_util = ['Sibuk (Utilisasi)', 'Idle']
-        sizes_util = [rho, 1 - rho]
-        colors_util = ['#ff6347', '#90ee90']
-        ax2.bar(labels_util, sizes_util, color=colors_util)
-        ax2.set_ylabel('Proporsi Waktu')
-        ax2.set_title('Utilisasi Waktu Server')
-        ax2.set_ylim(0, 1)
-        for i, v in enumerate(sizes_util):
-            ax2.text(i, v + 0.02, f"{v:.1%}", ha='center', fontweight='bold')
+        ax1.set_title("Bagaimana Pelanggan Menghabiskan Waktunya?")
         st.pyplot(fig)
+
+        st.markdown("#### Probabilitas Panjang Antrian")
+        n_values = np.arange(0, 15)
+        p_n_values = [(1 - rho) * (rho ** n) for n in n_values]
+        
+        fig2, ax2 = plt.subplots(figsize=(10, 4))
+        bars = ax2.bar(n_values, p_n_values, color='skyblue')
+        ax2.set_xlabel('Jumlah Mobil dalam Sistem (n)')
+        ax2.set_ylabel('Probabilitas P(n)')
+        ax2.set_title('Seberapa Mungkin Antrian Menjadi Panjang?')
+        ax2.set_xticks(n_values)
+        ax2.grid(True, axis='y', linestyle='--')
+        st.pyplot(fig2)
+
 
 # --- TAB 4: KEANDALAN LINI PRODUKSI ---
 def model_keandalan_produksi():
-    st.header("Analisis Keandalan Lini Produksi")
+    st.header("🔗 Analisis Keandalan Lini Produksi")
     st.subheader("Studi Kasus: Lini Perakitan Otomotif 'Nusantara Motor'")
     
     col1, col2 = st.columns([1.5, 2])
@@ -311,23 +317,18 @@ def model_keandalan_produksi():
     with col1:
         st.markdown("""
         **Skenario Bisnis:**
-        'Nusantara Motor' memiliki lini perakitan yang terdiri dari beberapa stasiun kerja (mesin) yang beroperasi secara seri. Jika salah satu mesin berhenti, seluruh lini produksi akan terhenti. Analisis ini bertujuan untuk menghitung keandalan total lini produksi dan mengidentifikasi mesin mana yang menjadi 'mata rantai terlemah'.
+        Sebuah lini perakitan terdiri dari beberapa mesin yang beroperasi secara seri. Jika satu mesin berhenti, seluruh lini terhenti. Analisis ini menghitung keandalan total dan mengidentifikasi 'mata rantai terlemah'.
         """)
         
         with st.expander("Rumus Model: Keandalan Sistem Seri"):
-            st.markdown("**Variabel:**")
-            st.markdown("- $R_s$ = Keandalan Sistem Total")
-            st.markdown("- $R_i$ = Keandalan Komponen ke-i")
-            
-            st.markdown("**Rumus Utama:**")
-            st.latex(r''' R_s = R_1 \times R_2 \times R_3 \times \dots \times R_n = \prod_{i=1}^{n} R_i ''')
-            st.markdown("Keandalan sistem seri adalah hasil perkalian dari keandalan setiap komponennya.")
+            st.latex(r''' R_s = R_1 \times R_2 \times \dots \times R_n = \prod_{i=1}^{n} R_i ''')
 
-        with st.expander("Parameter Model (Bisa Diubah)", expanded=True):
-            r1 = st.slider("Keandalan Mesin Stamping (R1)", 0.80, 1.00, 0.98, 0.01, help="Probabilitas mesin Stamping beroperasi tanpa gagal.")
-            r2 = st.slider("Keandalan Mesin Welding (R2)", 0.80, 1.00, 0.99, 0.01, help="Probabilitas mesin Welding beroperasi tanpa gagal.")
-            r3 = st.slider("Keandalan Mesin Painting (R3)", 0.80, 1.00, 0.96, 0.01, help="Probabilitas mesin Painting beroperasi tanpa gagal.")
-            r4 = st.slider("Keandalan Mesin Assembly (R4)", 0.80, 1.00, 0.97, 0.01, help="Probabilitas mesin Assembly beroperasi tanpa gagal.")
+        with st.container(border=True):
+            st.subheader("🔧 Keandalan per Mesin")
+            r1 = st.slider("Stamping (R1)", 0.80, 1.00, 0.98, 0.01)
+            r2 = st.slider("Welding (R2)", 0.80, 1.00, 0.99, 0.01)
+            r3 = st.slider("Painting (R3)", 0.80, 1.00, 0.96, 0.01)
+            r4 = st.slider("Assembly (R4)", 0.80, 1.00, 0.97, 0.01)
 
         # --- Perhitungan ---
         reliabilities = {'Stamping': r1, 'Welding': r2, 'Painting': r3, 'Assembly': r4}
@@ -336,43 +337,63 @@ def model_keandalan_produksi():
         weakest_link_value = reliabilities[weakest_link_name]
 
         st.divider()
-        st.subheader("Hasil Analisis Keandalan")
-
-        st.warning(f"**Mata Rantai Terlemah:** Mesin **{weakest_link_name}** dengan keandalan **{weakest_link_value:.2%}** adalah komponen paling berisiko. Prioritaskan perawatan dan potensi peningkatan pada mesin ini.")
+        st.subheader("💡 Hasil dan Wawasan Bisnis")
+        st.warning(f"**Mata Rantai Terlemah:** Mesin **{weakest_link_name}** ({weakest_link_value:.1%}) adalah komponen paling berisiko. Prioritaskan perawatan dan perbaikan pada mesin ini untuk dampak terbesar.")
 
         col1_res, col2_res = st.columns(2)
         with col1_res:
              st.metric(label="📉 Keandalan Keseluruhan Lini", value=f"{keandalan_sistem:.2%}")
         with col2_res:
-             st.metric(label="📈 Probabilitas Kegagalan Lini", value=f"{1 - keandalan_sistem:.2%}")
+             st.metric(label="📈 Probabilitas Kegagalan Lini", value=f"{1 - keandalan_sistem:.2%}", delta_color="inverse")
 
     with col2:
-        st.markdown("#### Visualisasi Keandalan Sistem Seri")
+        st.markdown("#### Diagram Alur dan Keandalan Sistem")
+        
+        # --- Visualisasi Diagram Alur ---
         labels = list(reliabilities.keys())
         values = list(reliabilities.values())
-        labels.append("SISTEM TOTAL")
-        values.append(keandalan_sistem)
-        fig, ax = plt.subplots(figsize=(10, 7))
-        bar_colors = ['blue'] * len(reliabilities)
-        weakest_idx = list(reliabilities.keys()).index(weakest_link_name)
-        bar_colors[weakest_idx] = 'red'
-        bar_colors.append('purple')
-        bars = ax.bar(labels, values, color=bar_colors)
-        ax.set_ylabel('Tingkat Keandalan (Reliability)')
-        ax.set_title('Perbandingan Keandalan Komponen dan Sistem', fontsize=16)
-        ax.set_ylim(min(0.75, min(values) * 0.95 if values else 0.75), 1.01)
-        for bar in bars:
-            yval = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2.0, yval + 0.005, f'{yval:.2%}', ha='center', va='bottom')
+        fig, ax = plt.subplots(figsize=(10, 2.5))
+        ax.set_xlim(-0.5, len(labels) - 0.5)
+        ax.set_ylim(0, 1)
+        
+        # Garis alur
+        ax.plot([-0.5, len(labels)-0.5], [0.5, 0.5], color='gray', linestyle='-', linewidth=5)
+
+        for i, (label, value) in enumerate(reliabilities.items()):
+            color = 'red' if label == weakest_link_name else 'skyblue'
+            ax.add_patch(plt.Rectangle((i-0.3, 0.3), 0.6, 0.4, facecolor=color, edgecolor='black'))
+            ax.text(i, 0.5, label, ha='center', va='center', color='white', weight='bold')
+            ax.text(i, 0.2, f'{value:.1%}', ha='center', va='center', fontsize=12)
+
+        ax.axis('off')
+        ax.set_title("Alur Proses dan Titik Rawan", fontsize=16)
         st.pyplot(fig)
+        
+        # --- Simulasi Peningkatan ---
+        with st.container(border=True):
+            st.markdown("**Analisis 'Bagaimana-Jika':**")
+            st.write(f"Mari kita coba tingkatkan keandalan mesin terlemah, yaitu **{weakest_link_name}**.")
+            
+            peningkatan = st.slider(f"Target Keandalan Baru untuk {weakest_link_name}", 
+                                    min_value=weakest_link_value, max_value=1.0, value=min(weakest_link_value+0.02, 0.999), 
+                                    step=0.001, format="%.3f")
+
+            reliabilities_baru = reliabilities.copy()
+            reliabilities_baru[weakest_link_name] = peningkatan
+            keandalan_sistem_baru = np.prod(list(reliabilities_baru.values()))
+            
+            st.metric(label="Keandalan Sistem Baru (Setelah Peningkatan)", 
+                      value=f"{keandalan_sistem_baru:.2%}",
+                      delta=f"{(keandalan_sistem_baru - keandalan_sistem):.2%} Peningkatan")
 
 
 # --- KONTROL TAB UTAMA ---
+st.header("Pilih Model Matematika", divider='rainbow')
 tab1, tab2, tab3, tab4 = st.tabs([
-    "Optimasi Produksi", 
-    "Model Persediaan", 
-    "Model Antrian", 
-    "Keandalan Lini Produksi"
+    "📊 Optimasi Produksi", 
+    "📦 Model Persediaan", 
+    "⏳ Model Antrian", 
+    "🔗 Keandalan Lini Produksi"
 ])
 
 with tab1:
