@@ -54,11 +54,11 @@ def optimasi_produksi():
             - $y$ = Jumlah Kursi
 
             **Fungsi Tujuan (Maksimalkan Keuntungan):**
-            $Z = (\text{Keuntungan per Meja} \cdot x) + (\text{Keuntungan per Kursi} \cdot y)$
+            $Z = (\ text{Keuntungan per Meja} \cdot x) + (\ text{Keuntungan per Kursi} \cdot y)$
 
             **Fungsi Kendala (Batasan Sumber Daya):**
-            1.  $(\text{Jam per Meja} \cdot x) + (\text{Jam per Kursi} \cdot y) \le \text{Total Jam Tersedia}$
-            2.  $(\text{Kayu per Meja} \cdot x) + (\text{Kayu per Kursi} \cdot y) \le \text{Total Kayu Tersedia}$
+            1.  $(\ text{Jam per Meja} \cdot x) + (\ text{Jam per Kursi} \cdot y) \le \ text{Total Jam Tersedia}$
+            2.  $(\ text{Kayu per Meja} \cdot x) + (\ text{Kayu per Kursi} \cdot y) \le \ text{Total Kayu Tersedia}$
             3.  $x \ge 0, y \ge 0$
             """)
 
