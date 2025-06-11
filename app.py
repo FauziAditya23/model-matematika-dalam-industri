@@ -11,7 +11,6 @@ st.markdown("Sebuah aplikasi interaktif untuk memahami penerapan model matematik
 # --- SIDEBAR ---
 with st.sidebar:
     st.header("Panduan Aplikasi")
-    st.image("https://cdn-icons-png.flaticon.com/512/2740/2740943.png", width=60)
     st.markdown("""
     Aplikasi ini mendemonstrasikan empat model matematika melalui studi kasus yang relevan dengan industri di Indonesia. Setiap tab menyediakan **analisis, visualisasi, dan wawasan bisnis** yang dapat ditindaklanjuti.
     """)
