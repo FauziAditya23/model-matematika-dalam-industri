@@ -90,6 +90,7 @@ def optimasi_produksi():
             if intersect_point[0] < 0 or intersect_point[1] < 0: intersect_point = (0, 0)
         except np.linalg.LinAlgError:
             intersect_point = (0, 0)
+        
         corner_points = [(0, 0)]
         if y_intercept1 != float('inf') and (kayu_meja*0 + kayu_kursi*y_intercept1 <= total_kayu): corner_points.append((0, y_intercept1))
         if y_intercept2 != float('inf') and (jam_meja*0 + jam_kursi*y_intercept2 <= total_jam): corner_points.append((0, y_intercept2))
@@ -97,12 +98,27 @@ def optimasi_produksi():
         if x_intercept2 != float('inf') and (jam_meja*x_intercept2 + jam_kursi*0 <= total_jam): corner_points.append((x_intercept2, 0))
         if intersect_point[0] > 0 and intersect_point[1] > 0: corner_points.append(tuple(intersect_point))
         
+        corner_points_unique = sorted(list(set(corner_points)), key=lambda k: (k[0], k[1]))
+
         optimal_profit, optimal_point = 0, (0, 0)
-        for x, y in set(corner_points):
+        profits_at_corners = []
+        for x, y in corner_points_unique:
             profit = profit_meja * x + profit_kursi * y
+            profits_at_corners.append({'x': round(x, 2), 'y': round(y, 2), 'profit': round(profit, 2)})
             if profit > optimal_profit:
                 optimal_profit, optimal_point = profit, (math.floor(x), math.floor(y))
         
+        with st.expander("Lihat Proses Perhitungan"):
+            st.markdown("**Fungsi Tujuan dengan Angka:**")
+            st.latex(f"Z = {profit_meja:,.0f}x + {profit_kursi:,.0f}y")
+            st.markdown("**Fungsi Kendala dengan Angka:**")
+            st.latex(f"1. \quad {jam_meja}x + {jam_kursi}y \le {total_jam}")
+            st.latex(f"2. \quad {kayu_meja}x + {kayu_kursi}y \le {total_kayu}")
+            st.markdown("**Perhitungan di Titik-Titik Sudut:**")
+            for p in profits_at_corners:
+                is_optimal = (math.floor(p['x']) == optimal_point[0] and math.floor(p['y']) == optimal_point[1])
+                st.write(f"- Titik ({p['x']}, {p['y']}): Keuntungan = Rp {p['profit']:,.0f} {'**(Optimal)**' if is_optimal else ''}")
+
     with col2:
         st.subheader("💡 Hasil dan Wawasan Bisnis")
         st.success(f"**Rekomendasi Produksi:** Untuk keuntungan maksimal, 'Jati Indah' harus memproduksi **{optimal_point[0]} Meja** dan **{optimal_point[1]} Kursi** per minggu.")
@@ -193,6 +209,14 @@ def model_persediaan():
             siklus_pemesanan = 360 / frekuensi_pesanan if frekuensi_pesanan > 0 else 0
         else:
             eoq = 0; total_biaya = 0; rop = 0; siklus_pemesanan = 0
+            
+        with st.expander("Lihat Proses Perhitungan"):
+            st.markdown(f"**1. Perhitungan EOQ ($Q^*$):**")
+            st.latex(fr"Q^* = \sqrt{{\frac{{2 \times {D} \times {S}}}{{{H}}}}} = {eoq:.2f} \text{{ unit}}")
+            st.markdown(f"**2. Perhitungan Titik Pemesanan Ulang (ROP):**")
+            st.latex(fr"ROP = ({D}/360 \times {lead_time}) + {safety_stock} = {rop:.2f} \text{{ unit}}")
+            st.markdown(f"**3. Perhitungan Biaya Total Tahunan:**")
+            st.latex(fr"TC = \left(\frac{{{D}}}{{{eoq:.2f}}}\right){S} + \left(\frac{{{eoq:.2f}}}{{2}}\right){H} = \text{{Rp }}{total_biaya:,.2f}")
 
         st.divider()
         st.subheader("💡 Hasil dan Wawasan Bisnis")
@@ -274,6 +298,13 @@ def model_antrian():
             return
 
         rho = lmbda / mu; L = rho / (1 - rho); Lq = (rho**2) / (1 - rho); W = L / lmbda; Wq = Lq / lmbda
+        
+        with st.expander("Lihat Proses Perhitungan"):
+            st.latex(fr"\rho = \frac{{{lmbda}}}{{{mu}}} = {rho:.2f} \quad (Utilisasi)")
+            st.latex(fr"L = \frac{{{rho:.2f}}}{{1 - {rho:.2f}}} = {L:.2f} \text{{ mobil di sistem}}")
+            st.latex(fr"L_q = \frac{{{rho:.2f}^2}}{{1 - {rho:.2f}}} = {Lq:.2f} \text{{ mobil di antrian}}")
+            st.latex(fr"W = \frac{{{L:.2f}}}{{{lmbda}}} = {W:.3f} \text{{ jam, atau }} {W*60:.2f} \text{{ menit}}")
+            st.latex(fr"W_q = \frac{{{Lq:.2f}}}{{{lmbda}}} = {Wq:.3f} \text{{ jam, atau }} {Wq*60:.2f} \text{{ menit}}")
 
         st.divider()
         st.subheader("💡 Hasil dan Wawasan Bisnis")
@@ -362,6 +393,11 @@ def model_keandalan_produksi():
         keandalan_sistem = np.prod(list(reliabilities.values()))
         weakest_link_name = min(reliabilities, key=reliabilities.get)
         weakest_link_value = reliabilities[weakest_link_name]
+        
+        with st.expander("Lihat Proses Perhitungan"):
+            st.latex(fr"R_s = R_{{Stamping}} \times R_{{Welding}} \times R_{{Painting}} \times R_{{Assembly}}")
+            st.latex(fr"R_s = {r1} \times {r2} \times {r3} \times {r4} = {keandalan_sistem:.4f}")
+            st.markdown(f"**Keandalan Sistem ($R_s$)** adalah **{keandalan_sistem:.2%}**.")
 
         st.divider()
         st.subheader("💡 Hasil dan Wawasan Bisnis")
