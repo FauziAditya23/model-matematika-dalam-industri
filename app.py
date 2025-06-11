@@ -229,7 +229,7 @@ def model_persediaan():
             st.markdown(f"**3. Perhitungan Biaya Total Tahunan:**")
             st.latex(fr"TC = \left(\frac{{{D}}}{{{eoq:.2f}}}\right){S} + \left(\frac{{{eoq:.2f}}}{{2}}\right){H} = \text{{Rp }}{total_biaya:,.2f}")
 
-        st.divider()
+    with col2:
         st.subheader("💡 Hasil dan Wawasan Bisnis")
         st.success(f"**Kebijakan Optimal:** Pesan **{eoq:.0f} kg** biji kopi setiap kali stok mencapai **{rop:.1f} kg**.")
         
@@ -250,7 +250,6 @@ def model_persediaan():
             else:
                 st.success("**Kebijakan Seimbang.** Kuantitas pesanan Anda tampak seimbang, menyeimbangkan antara biaya pesan dan biaya simpan dengan baik.")
         
-    with col2:
         st.markdown("#### Visualisasi Analisis Biaya")
         q = np.linspace(max(1, eoq * 0.1), eoq * 2 if eoq > 0 else 200, 100)
         holding_costs = (q / 2) * H
@@ -363,7 +362,7 @@ def model_antrian():
         
         col1_res, col2_res = st.columns(2)
         with col1_res:
-            st.metric(label="🚗 Rata-rata Mobil di Sistem (L)", value=f"{L:.2f} mobil")
+            st.metric(label="� Rata-rata Mobil di Sistem (L)", value=f"{L:.2f} mobil")
             st.metric(label="⏳ Rata-rata Total Waktu (W)", value=f"{W*60:.2f} menit")
         with col2_res:
             st.metric(label="🚗 Rata-rata Panjang Antrian (Lq)", value=f"{Lq:.2f} mobil")
