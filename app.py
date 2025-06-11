@@ -48,6 +48,17 @@ def optimasi_produksi():
         'Jati Indah' ingin menentukan jumlah produksi meja dan kursi yang optimal untuk memaksimalkan keuntungan mingguan, dengan keterbatasan jam kerja pengrajin dan stok kayu jati.
         """)
         
+        with st.container(border=True):
+            st.subheader("🛠️ Parameter Model")
+            profit_meja = st.number_input("Keuntungan per Meja (Rp)", min_value=0, value=750000, step=50000)
+            profit_kursi = st.number_input("Keuntungan per Kursi (Rp)", min_value=0, value=300000, step=25000)
+            jam_meja = st.number_input("Jam Kerja per Meja", min_value=1.0, value=6.0, step=0.5)
+            jam_kursi = st.number_input("Jam Kerja per Kursi", min_value=1.0, value=2.0, step=0.5)
+            kayu_meja = st.number_input("Kayu untuk Meja (unit)", min_value=1.0, value=4.0, step=0.5)
+            kayu_kursi = st.number_input("Kayu untuk Kursi (unit)", min_value=1.0, value=1.5, step=0.5)
+            total_jam = st.number_input("Total Jam Kerja Tersedia per Minggu", min_value=1, value=240, step=10)
+            total_kayu = st.number_input("Total Kayu Jati Tersedia (unit)", min_value=1, value=120, step=10)
+            
         with st.expander("Penjelasan Rumus Model: Linear Programming"):
             st.markdown("""
             Linear Programming adalah metode untuk mencapai hasil terbaik (seperti keuntungan maksimal atau biaya minimal) dalam suatu model matematika yang persyaratannya diwakili oleh hubungan linear.
@@ -66,17 +77,6 @@ def optimasi_produksi():
             st.latex(r'''1. \quad (\text{Jam per Meja} \cdot x) + (\text{Jam per Kursi} \cdot y) \le \text{Total Jam Tersedia}''')
             st.latex(r'''2. \quad (\text{Kayu per Meja} \cdot x) + (\text{Kayu per Kursi} \cdot y) \le \text{Total Kayu Tersedia}''')
             st.latex(r'''3. \quad x \ge 0, y \ge 0''')
-
-        with st.container(border=True):
-            st.subheader("🛠️ Parameter Model")
-            profit_meja = st.number_input("Keuntungan per Meja (Rp)", min_value=0, value=750000, step=50000)
-            profit_kursi = st.number_input("Keuntungan per Kursi (Rp)", min_value=0, value=300000, step=25000)
-            jam_meja = st.number_input("Jam Kerja per Meja", min_value=1.0, value=6.0, step=0.5)
-            jam_kursi = st.number_input("Jam Kerja per Kursi", min_value=1.0, value=2.0, step=0.5)
-            kayu_meja = st.number_input("Kayu untuk Meja (unit)", min_value=1.0, value=4.0, step=0.5)
-            kayu_kursi = st.number_input("Kayu untuk Kursi (unit)", min_value=1.0, value=1.5, step=0.5)
-            total_jam = st.number_input("Total Jam Kerja Tersedia per Minggu", min_value=1, value=240, step=10)
-            total_kayu = st.number_input("Total Kayu Jati Tersedia (unit)", min_value=1, value=120, step=10)
 
         # --- Perhitungan ---
         A_matrix = np.array([[jam_meja, jam_kursi], [kayu_meja, kayu_kursi]])
@@ -191,6 +191,14 @@ def model_persediaan():
         'Kopi Kita' perlu menentukan jumlah pesanan biji kopi impor yang optimal untuk meminimalkan total biaya persediaan (biaya pesan dan biaya simpan).
         """)
         
+        with st.container(border=True):
+            st.subheader("⚙️ Parameter Model")
+            D = st.number_input("Permintaan Tahunan (kg)", min_value=1, value=1200)
+            S = st.number_input("Biaya Pemesanan per Pesanan (Rp)", min_value=0, value=500000)
+            H = st.number_input("Biaya Penyimpanan per kg per Tahun (Rp)", min_value=0, value=25000)
+            lead_time = st.number_input("Lead Time Pengiriman (hari)", min_value=1, value=14)
+            safety_stock = st.number_input("Stok Pengaman (Safety Stock) (kg)", min_value=0, value=10, help="Stok tambahan untuk mengantisipasi ketidakpastian permintaan atau keterlambatan.")
+        
         with st.expander("Penjelasan Rumus Model: Economic Order Quantity (EOQ)"):
             st.markdown("""
             EOQ adalah model yang digunakan untuk menemukan kuantitas pesanan yang dapat meminimalkan total biaya persediaan. Model ini menyeimbangkan dua jenis biaya yang berlawanan:
@@ -200,14 +208,6 @@ def model_persediaan():
             """)
             st.markdown("**Variabel:** $Q^*$ (EOQ), $D$ (Permintaan Tahunan), $S$ (Biaya Pesan), $H$ (Biaya Simpan)")
             st.latex(r''' Q^* = \sqrt{\frac{2DS}{H}} \quad | \quad ROP = (D/360) \times \text{Lead Time} + \text{Safety Stock}''')
-
-        with st.container(border=True):
-            st.subheader("⚙️ Parameter Model")
-            D = st.number_input("Permintaan Tahunan (kg)", min_value=1, value=1200)
-            S = st.number_input("Biaya Pemesanan per Pesanan (Rp)", min_value=0, value=500000)
-            H = st.number_input("Biaya Penyimpanan per kg per Tahun (Rp)", min_value=0, value=25000)
-            lead_time = st.number_input("Lead Time Pengiriman (hari)", min_value=1, value=14)
-            safety_stock = st.number_input("Stok Pengaman (Safety Stock) (kg)", min_value=0, value=10, help="Stok tambahan untuk mengantisipasi ketidakpastian permintaan atau keterlambatan.")
         
         if H > 0 and D > 0:
             eoq = math.sqrt((2 * D * S) / H)
@@ -298,6 +298,11 @@ def model_antrian():
         Manajemen 'Ayam Goreng Juara' ingin menganalisis efisiensi layanan drive-thru untuk menyeimbangkan biaya operasional dan kepuasan pelanggan (waktu tunggu).
         """)
         
+        with st.container(border=True):
+            st.subheader("📈 Parameter Sistem")
+            lmbda = st.slider("Tingkat Kedatangan (λ - mobil/jam)", 1, 100, 30)
+            mu = st.slider("Tingkat Pelayanan (μ - mobil/jam)", 1, 100, 35)
+            
         with st.expander("Penjelasan Rumus Model: Antrian M/M/1"):
             st.markdown("""
             Model antrian M/M/1 digunakan untuk menganalisis sistem dengan satu server (pelayan). Model ini membantu kita memahami metrik kinerja utama:
@@ -308,11 +313,6 @@ def model_antrian():
             """)
             st.markdown("**Variabel:** $\lambda$ (Tingkat Kedatangan), $\mu$ (Tingkat Pelayanan)")
             st.latex(r''' \rho = \frac{\lambda}{\mu} \quad | \quad L = \frac{\rho}{1 - \rho} \quad | \quad W = \frac{L}{\lambda} ''')
-
-        with st.container(border=True):
-            st.subheader("📈 Parameter Sistem")
-            lmbda = st.slider("Tingkat Kedatangan (λ - mobil/jam)", 1, 100, 30)
-            mu = st.slider("Tingkat Pelayanan (μ - mobil/jam)", 1, 100, 35)
             
         if mu <= lmbda:
             st.error("Tingkat pelayanan (μ) harus lebih besar dari tingkat kedatangan (λ) agar antrian stabil.")
@@ -401,6 +401,13 @@ def model_keandalan_produksi():
         Sebuah lini perakitan terdiri dari beberapa mesin yang beroperasi secara seri. Jika satu mesin berhenti, seluruh lini terhenti. Analisis ini menghitung keandalan total dan mengidentifikasi 'mata rantai terlemah'.
         """)
         
+        with st.container(border=True):
+            st.subheader("🔧 Keandalan per Mesin")
+            r1 = st.slider("Stamping (R1)", 0.80, 1.00, 0.98, 0.01)
+            r2 = st.slider("Welding (R2)", 0.80, 1.00, 0.99, 0.01)
+            r3 = st.slider("Painting (R3)", 0.80, 1.00, 0.96, 0.01)
+            r4 = st.slider("Assembly (R4)", 0.80, 1.00, 0.97, 0.01)
+        
         with st.expander("Penjelasan Rumus Model: Keandalan Sistem Seri"):
             st.markdown("""
             Keandalan sistem seri dihitung dengan mengalikan keandalan dari setiap komponennya.
@@ -408,13 +415,6 @@ def model_keandalan_produksi():
             - **Sistem Seri:** Komponen-komponen yang tersusun berurutan. Jika salah satu saja gagal, maka seluruh sistem akan gagal. Akibatnya, keandalan sistem seri **selalu lebih rendah** daripada keandalan komponen terlemahnya.
             """)
             st.latex(r''' R_s = R_1 \times R_2 \times \dots \times R_n = \prod_{i=1}^{n} R_i ''')
-
-        with st.container(border=True):
-            st.subheader("🔧 Keandalan per Mesin")
-            r1 = st.slider("Stamping (R1)", 0.80, 1.00, 0.98, 0.01)
-            r2 = st.slider("Welding (R2)", 0.80, 1.00, 0.99, 0.01)
-            r3 = st.slider("Painting (R3)", 0.80, 1.00, 0.96, 0.01)
-            r4 = st.slider("Assembly (R4)", 0.80, 1.00, 0.97, 0.01)
 
         reliabilities = {'Stamping': r1, 'Welding': r2, 'Painting': r3, 'Assembly': r4}
         keandalan_sistem = np.prod(list(reliabilities.values()))
