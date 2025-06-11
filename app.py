@@ -2,8 +2,6 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-import plotly.express as px
-import pandas as pd
 
 # --- KONFIGURASI HALAMAN ---
 st.set_page_config(page_title="Dashboard Model Matematika Industri", layout="wide", initial_sidebar_state="expanded")
@@ -17,7 +15,7 @@ with st.sidebar:
     st.markdown("""
     Aplikasi ini mendemonstrasikan empat model matematika melalui studi kasus yang relevan dengan industri di Indonesia. Setiap tab menyediakan **analisis, visualisasi, dan wawasan bisnis** yang dapat ditindaklanjuti.
     """)
-    st.info("**Tips:** Arahkan kursor pada grafik untuk melihat detail, atau gunakan ikon di pojok kanan atas grafik untuk memperbesar.")
+    st.info("**Tips:** Ubah parameter di setiap model untuk melihat bagaimana hasilnya berubah secara real-time!")
     
     st.markdown("""
     ---
@@ -50,7 +48,12 @@ def optimasi_produksi():
         'Jati Indah' ingin menentukan jumlah produksi meja dan kursi yang optimal untuk memaksimalkan keuntungan mingguan, dengan keterbatasan jam kerja pengrajin dan stok kayu jati.
         """)
         
-        with st.expander("Rumus Model: Linear Programming"):
+        with st.expander("Penjelasan Rumus Model: Linear Programming"):
+            st.markdown("""
+            Linear Programming adalah metode untuk mencapai hasil terbaik (seperti keuntungan maksimal atau biaya minimal) dalam suatu model matematika yang persyaratannya diwakili oleh hubungan linear.
+            - **Fungsi Tujuan:** Ini adalah formula yang ingin kita maksimalkan (keuntungan) atau minimalkan (biaya). Dalam kasus ini, kita ingin memaksimalkan total keuntungan dari penjualan semua meja dan kursi.
+            - **Fungsi Kendala:** Ini adalah batasan atau aturan yang harus dipatuhi, seperti sumber daya yang terbatas (jam kerja, bahan baku). Solusi yang kita cari tidak boleh melanggar salah satu dari kendala ini.
+            """)
             st.markdown("""
             **Variabel Keputusan:**
             - $x$ = Jumlah Meja
@@ -110,51 +113,43 @@ def optimasi_produksi():
         with col2_res:
             jam_terpakai = jam_meja * optimal_point[0] + jam_kursi * optimal_point[1]
             kayu_terpakai = kayu_meja * optimal_point[0] + kayu_kursi * optimal_point[1]
-            st.metric(label="🛠️ Utilisasi Jam Kerja", value=f"{jam_terpakai:.1f} / {total_jam} Jam", help=f"{jam_terpakai/total_jam:.1%} terpakai")
-            st.metric(label="🌲 Utilisasi Kayu Jati", value=f"{kayu_terpakai:.1f} / {total_kayu} Unit", help=f"{kayu_terpakai/total_kayu:.1%} terpakai")
+            st.metric(label="🛠️ Utilisasi Jam Kerja", value=f"{jam_terpakai:.1f} / {total_jam} Jam", help=f"{(jam_terpakai/total_jam):.1%} terpakai")
+            st.metric(label="🌲 Utilisasi Kayu Jati", value=f"{kayu_terpakai:.1f} / {total_kayu} Unit", help=f"{(kayu_terpakai/total_kayu):.1%} terpakai")
         
-        with st.container(border=True):
-            st.markdown("**Analisis Sumber Daya:**")
-            if (total_jam - jam_terpakai) < 1 and (total_kayu - kayu_terpakai) < 1:
-                 st.error("**Kritis!** Kedua sumber daya (jam dan kayu) habis. Peningkatan kapasitas mutlak diperlukan.")
-            elif (total_jam - jam_terpakai) < 1:
-                st.warning("**Jam Kerja adalah Kendala Utama (Bottleneck)!** Pertimbangkan untuk menambah jam lembur atau pengrajin baru.")
-            elif (total_kayu - kayu_terpakai) < 1:
-                st.warning("**Stok Kayu adalah Kendala Utama (Bottleneck)!** Pertimbangkan mencari pemasok kayu tambahan.")
-            else:
-                st.info("Kedua sumber daya masih tersisa. Ada ruang untuk meningkatkan produksi jika permintaan meningkat.")
-
-        st.markdown("#### Visualisasi Interaktif Daerah Produksi")
+        st.markdown("#### Visualisasi Daerah Produksi yang Layak")
+        fig, ax = plt.subplots(figsize=(10, 5))
         
         max_x = max(x_intercept1, x_intercept2) if max(x_intercept1, x_intercept2) > 0 else 50
-        x_vals = np.linspace(0, max_x * 1.1, 100)
+        x_vals = np.linspace(0, max_x * 1.1, 400)
         
-        df_lines = pd.DataFrame({
-            'Meja (x)': np.concatenate([x_vals, x_vals]),
-            'Kursi (y)': np.concatenate([
-                (total_jam - jam_meja * x_vals) / jam_kursi if jam_kursi > 0 else np.inf,
-                (total_kayu - kayu_meja * x_vals) / kayu_kursi if kayu_kursi > 0 else np.inf
-            ]),
-            'Kendala': ['Batas Jam Kerja'] * 100 + ['Batas Stok Kayu'] * 100
-        })
-        df_lines = df_lines[df_lines['Kursi (y)'] >= 0]
+        y1 = (total_jam - jam_meja * x_vals) / jam_kursi if jam_kursi > 0 else np.full_like(x_vals, float('inf'))
+        ax.plot(x_vals, y1, label=f'Batas Jam Kerja')
+        
+        y2 = (total_kayu - kayu_meja * x_vals) / kayu_kursi if kayu_kursi > 0 else np.full_like(x_vals, float('inf'))
+        ax.plot(x_vals, y2, label=f'Batas Stok Kayu')
+        
+        y_feasible = np.minimum(y1, y2)
+        ax.fill_between(x_vals, 0, y_feasible, where=(y_feasible>=0), color='green', alpha=0.2, label='Daerah Produksi Layak')
+        
+        ax.plot(optimal_point[0], optimal_point[1], 'ro', markersize=12, label=f'Titik Optimal ({optimal_point[0]}, {optimal_point[1]})')
+        
+        ax.set_xlabel('Jumlah Meja (x)')
+        ax.set_ylabel('Jumlah Kursi (y)')
+        ax.set_title('Grafik Optimasi Produksi Mebel', fontsize=16)
+        ax.legend()
+        ax.grid(True)
+        ax.set_xlim(left=0)
+        ax.set_ylim(bottom=0)
+        st.pyplot(fig)
 
-        fig = px.line(df_lines, x='Meja (x)', y='Kursi (y)', color='Kendala', 
-                      title='Grafik Optimasi Produksi Mebel',
-                      labels={'Meja (x)': 'Jumlah Meja', 'Kursi (y)': 'Jumlah Kursi'})
-
-        df_feasible = df_lines.groupby('Meja (x)')['Kursi (y)'].min().reset_index()
-        fig.add_scatter(x=df_feasible['Meja (x)'], y=df_feasible['Kursi (y)'], fill='tozeroy', 
-                        mode='none', name='Daerah Layak', fillcolor='rgba(0,128,0,0.2)')
-        
-        fig.add_scatter(x=[optimal_point[0]], y=[optimal_point[1]], mode='markers', 
-                        marker=dict(color='red', size=15, symbol='star'), name='Titik Optimal',
-                        hoverinfo='text', text=f"Optimal: {optimal_point[0]} Meja, {optimal_point[1]} Kursi<br>Profit: Rp {optimal_profit:,.0f}")
-        
-        fig.update_layout(legend_title_text='Legenda')
-        fig.update_xaxes(range=[0, None])
-        fig.update_yaxes(range=[0, None])
-        st.plotly_chart(fig, use_container_width=True)
+        with st.container(border=True):
+            st.markdown("**🔍 Penjelasan Grafik:**")
+            st.markdown("""
+            Grafik ini memvisualisasikan semua kemungkinan kombinasi produksi.
+            - **Garis Batas:** Setiap garis mewakili batas maksimum dari satu sumber daya (jam kerja atau kayu).
+            - **Daerah Hijau (Feasible Region):** Ini adalah area di mana semua kombinasi produksi (jumlah meja dan kursi) **memenuhi semua kendala** yang ada. Solusi yang valid harus berada di dalam atau di batas area ini.
+            - **Titik Merah (Solusi Optimal):** Dari semua titik di sudut daerah hijau, titik ini adalah yang memberikan **keuntungan tertinggi**. Ini adalah jawaban yang kita cari.
+            """)
 
 # --- TAB 2: MODEL PERSEDIAAN ---
 def model_persediaan():
@@ -169,7 +164,13 @@ def model_persediaan():
         'Kopi Kita' perlu menentukan jumlah pesanan biji kopi impor yang optimal untuk meminimalkan total biaya persediaan (biaya pesan dan biaya simpan).
         """)
         
-        with st.expander("Rumus Model: Economic Order Quantity (EOQ)"):
+        with st.expander("Penjelasan Rumus Model: Economic Order Quantity (EOQ)"):
+            st.markdown("""
+            EOQ adalah model yang digunakan untuk menemukan kuantitas pesanan yang dapat meminimalkan total biaya persediaan. Model ini menyeimbangkan dua jenis biaya yang berlawanan:
+            - **Biaya Pemesanan (S):** Biaya yang dikeluarkan setiap kali memesan barang (misalnya, biaya pengiriman, administrasi). Semakin sering memesan, semakin tinggi biaya ini.
+            - **Biaya Penyimpanan (H):** Biaya untuk menyimpan barang di gudang (misalnya, sewa, asuransi, pendingin). Semakin banyak barang yang disimpan, semakin tinggi biaya ini.
+            - **Reorder Point (ROP):** Menentukan kapan harus memesan kembali untuk menghindari kehabisan stok, dengan mempertimbangkan waktu tunggu (lead time) dan stok pengaman.
+            """)
             st.markdown("**Variabel:** $Q^*$ (EOQ), $D$ (Permintaan Tahunan), $S$ (Biaya Pesan), $H$ (Biaya Simpan)")
             st.latex(r''' Q^* = \sqrt{\frac{2DS}{H}} \quad | \quad ROP = (D/360) \times \text{Lead Time} + \text{Safety Stock}''')
 
@@ -206,28 +207,38 @@ def model_persediaan():
             st.metric(label="🔄 Siklus Pemesanan", value=f"~{siklus_pemesanan:.1f} hari")
             
     with col2:
-        st.markdown("#### Visualisasi Interaktif Analisis Biaya")
+        st.markdown("#### Visualisasi Analisis Biaya")
         q = np.linspace(max(1, eoq * 0.1), eoq * 2 if eoq > 0 else 200, 100)
-        df_cost = pd.DataFrame({
-            'Kuantitas Pesanan': q,
-            'Biaya Penyimpanan': (q / 2) * H,
-            'Biaya Pemesanan': (D / q) * S,
-        })
-        df_cost['Total Biaya'] = df_cost['Biaya Penyimpanan'] + df_cost['Biaya Pemesanan']
+        holding_costs = (q / 2) * H
+        ordering_costs = (D / q) * S
+        total_costs = holding_costs + ordering_costs
         
-        fig = px.line(df_cost, x='Kuantitas Pesanan', y=['Biaya Penyimpanan', 'Biaya Pemesanan', 'Total Biaya'],
-                      title='Analisis Biaya Persediaan (EOQ)', labels={'value': 'Biaya Tahunan (Rp)', 'variable': 'Jenis Biaya'})
-        
-        fig.update_traces(selector=dict(name='Total Biaya'), line=dict(width=4))
-        
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax.plot(q, holding_costs, 'b-', label='Biaya Penyimpanan (Naik seiring kuantitas)')
+        ax.plot(q, ordering_costs, 'g-', label='Biaya Pemesanan (Turun seiring kuantitas)')
+        ax.plot(q, total_costs, 'r-', linewidth=3, label='Total Biaya')
         if eoq > 0:
-            fig.add_vline(x=eoq, line_width=3, line_dash="dash", line_color="purple", annotation_text="EOQ")
-        
-        st.plotly_chart(fig, use_container_width=True)
+            ax.axvline(x=eoq, color='purple', linestyle='--', label=f'EOQ - Titik Biaya Terendah')
+            ax.annotate(f'Biaya Terendah\nRp {total_biaya:,.0f}', xy=(eoq, total_biaya), xytext=(eoq*1.3, total_biaya*0.6),
+                        arrowprops=dict(facecolor='black', shrink=0.05), fontsize=12)
+
+        ax.set_xlabel('Kuantitas Pemesanan (kg)')
+        ax.set_ylabel('Biaya Tahunan (Rp)')
+        ax.set_title('Analisis Biaya Persediaan (EOQ)', fontsize=16)
+        ax.legend()
+        ax.grid(True)
+        ax.ticklabel_format(style='plain', axis='y')
+        st.pyplot(fig)
 
         with st.container(border=True):
-             st.markdown("**Wawasan Tambahan:** Titik EOQ adalah titik di mana **Biaya Penyimpanan** dan **Biaya Pemesanan** berpotongan, menghasilkan biaya total terendah. Stok pengaman tidak mempengaruhi EOQ, tetapi meningkatkan ROP untuk melindungi dari kehabisan stok.")
-
+             st.markdown("**🔍 Penjelasan Grafik:**")
+             st.markdown("""
+            Grafik ini menunjukkan trade-off antara biaya pemesanan dan biaya penyimpanan.
+            - **Garis Biru (Biaya Penyimpanan):** Semakin banyak barang yang dipesan, semakin tinggi biaya untuk menyimpannya.
+            - **Garis Hijau (Biaya Pemesanan):** Semakin banyak barang yang dipesan dalam satu waktu, semakin jarang kita memesan, sehingga total biaya pemesanan tahunan menurun.
+            - **Garis Merah (Total Biaya):** Adalah penjumlahan dari kedua biaya di atas.
+            - **Garis Ungu (EOQ):** Menandai titik di mana kurva total biaya mencapai titik terendahnya. Ini adalah kuantitas pesanan yang paling efisien.
+            """)
 
 # --- TAB 3: MODEL ANTRIAN ---
 def model_antrian():
@@ -242,7 +253,14 @@ def model_antrian():
         Manajemen 'Ayam Goreng Juara' ingin menganalisis efisiensi layanan drive-thru untuk menyeimbangkan biaya operasional dan kepuasan pelanggan (waktu tunggu).
         """)
         
-        with st.expander("Rumus Model: Antrian M/M/1"):
+        with st.expander("Penjelasan Rumus Model: Antrian M/M/1"):
+            st.markdown("""
+            Model antrian M/M/1 digunakan untuk menganalisis sistem dengan satu server (pelayan). Model ini membantu kita memahami metrik kinerja utama:
+            - **Utilisasi (ρ):** Seberapa sibuk server? Nilai mendekati 100% berarti sangat sibuk dan berisiko antrian panjang.
+            - **Panjang Antrian (L, Lq):** Berapa rata-rata jumlah pelanggan yang menunggu di sistem atau di antrian?
+            - **Waktu Tunggu (W, Wq):** Berapa lama rata-rata pelanggan menghabiskan waktu di sistem atau di antrian?
+            Model ini mengasumsikan kedatangan pelanggan dan waktu pelayanan mengikuti distribusi Poisson (acak).
+            """)
             st.markdown("**Variabel:** $\lambda$ (Tingkat Kedatangan), $\mu$ (Tingkat Pelayanan)")
             st.latex(r''' \rho = \frac{\lambda}{\mu} \quad | \quad L = \frac{\rho}{1 - \rho} \quad | \quad W = \frac{L}{\lambda} ''')
 
@@ -275,24 +293,43 @@ def model_antrian():
     with col2:
         st.markdown("#### Visualisasi Kinerja Antrian")
         
-        waktu_pelayanan_menit = (1/mu) * 60; waktu_tunggu_menit = Wq * 60
-        df_pie = pd.DataFrame({
-            'Aktivitas': ['Waktu Menunggu', 'Waktu Dilayani'],
-            'Durasi (menit)': [waktu_tunggu_menit, waktu_pelayanan_menit]
-        })
-        fig_pie = px.pie(df_pie, values='Durasi (menit)', names='Aktivitas', title="Bagaimana Pelanggan Menghabiskan Waktunya?",
-                         color_discrete_sequence=['#ff6347','#90ee90'])
-        st.plotly_chart(fig_pie, use_container_width=True)
+        fig1, ax1 = plt.subplots(figsize=(8, 4))
+        waktu_pelayanan_menit = (1/mu) * 60
+        waktu_tunggu_menit = Wq * 60
+        labels = ['Waktu Menunggu di Antrian', 'Waktu Dilayani']
+        sizes = [waktu_tunggu_menit, waktu_pelayanan_menit]
+        colors = ['#ff6347','#90ee90']
+        explode = (0.1, 0)
+        
+        ax1.pie(sizes, explode=explode, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors)
+        ax1.axis('equal')
+        ax1.set_title("Bagaimana Pelanggan Menghabiskan Waktunya?")
+        st.pyplot(fig1)
 
         st.markdown("#### Probabilitas Panjang Antrian")
         n_values = np.arange(0, 15)
         p_n_values = [(1 - rho) * (rho ** n) for n in n_values]
-        df_bar = pd.DataFrame({'Jumlah Mobil': n_values, 'Probabilitas': p_n_values})
-        fig_bar = px.bar(df_bar, x='Jumlah Mobil', y='Probabilitas', title='Seberapa Mungkin Antrian Menjadi Panjang?',
-                         text_auto='.2%')
-        fig_bar.update_traces(textposition='outside')
-        st.plotly_chart(fig_bar, use_container_width=True)
+        
+        fig2, ax2 = plt.subplots(figsize=(10, 4))
+        ax2.bar(n_values, p_n_values, color='skyblue')
+        for i, v in enumerate(p_n_values):
+            ax2.text(i, v, f"{v:.1%}", ha='center', va='bottom', fontsize=9)
 
+        ax2.set_xlabel('Jumlah Mobil dalam Sistem (n)')
+        ax2.set_ylabel('Probabilitas P(n)')
+        ax2.set_title('Seberapa Mungkin Antrian Menjadi Panjang?')
+        ax2.set_xticks(n_values)
+        ax2.grid(True, axis='y', linestyle='--')
+        ax2.set_yticklabels([])
+        st.pyplot(fig2)
+
+        with st.container(border=True):
+            st.markdown("**🔍 Penjelasan Grafik:**")
+            st.markdown("""
+            - **Grafik Pie:** Membagi total waktu pelanggan menjadi dua bagian: waktu yang dihabiskan untuk benar-benar dilayani (hijau) dan waktu yang terbuang untuk menunggu dalam antrian (merah). Persentase waktu tunggu yang besar menandakan pengalaman pelanggan yang buruk.
+            - **Grafik Batang:** Menunjukkan probabilitas (kemungkinan) ada sejumlah mobil di dalam sistem. Jika bar di sebelah kanan (misalnya, 5 mobil atau lebih) memiliki nilai yang signifikan, itu berarti antrian panjang sering terjadi.
+            """)
+            
 # --- TAB 4: KEANDALAN LINI PRODUKSI ---
 def model_keandalan_produksi():
     st.header("🔗 Analisis Keandalan Lini Produksi")
@@ -306,7 +343,12 @@ def model_keandalan_produksi():
         Sebuah lini perakitan terdiri dari beberapa mesin yang beroperasi secara seri. Jika satu mesin berhenti, seluruh lini terhenti. Analisis ini menghitung keandalan total dan mengidentifikasi 'mata rantai terlemah'.
         """)
         
-        with st.expander("Rumus Model: Keandalan Sistem Seri"):
+        with st.expander("Penjelasan Rumus Model: Keandalan Sistem Seri"):
+            st.markdown("""
+            Keandalan sistem seri dihitung dengan mengalikan keandalan dari setiap komponennya.
+            - **Keandalan (R):** Adalah probabilitas sebuah komponen atau sistem akan berfungsi dengan baik selama periode waktu tertentu.
+            - **Sistem Seri:** Komponen-komponen yang tersusun berurutan. Jika salah satu saja gagal, maka seluruh sistem akan gagal. Akibatnya, keandalan sistem seri **selalu lebih rendah** daripada keandalan komponen terlemahnya.
+            """)
             st.latex(r''' R_s = R_1 \times R_2 \times \dots \times R_n = \prod_{i=1}^{n} R_i ''')
 
         with st.container(border=True):
@@ -332,35 +374,40 @@ def model_keandalan_produksi():
              st.metric(label="📈 Probabilitas Kegagalan Lini", value=f"{1 - keandalan_sistem:.2%}", delta_color="inverse")
 
     with col2:
-        st.markdown("#### Visualisasi Interaktif Dampak Keandalan")
+        st.markdown("#### Visualisasi Dampak Keandalan Komponen")
         
         labels = list(reliabilities.keys())
         values = list(reliabilities.values())
         labels.append("SISTEM TOTAL")
         values.append(keandalan_sistem)
         
-        df_bar = pd.DataFrame({'Komponen': labels, 'Keandalan': values})
-        df_bar['Warna'] = ['Komponen'] * len(reliabilities) + ['Sistem Total']
-        df_bar.loc[df_bar['Komponen'] == weakest_link_name, 'Warna'] = 'Mata Rantai Terlemah'
+        fig, ax = plt.subplots(figsize=(10, 5))
         
-        fig = px.bar(df_bar, x='Komponen', y='Keandalan', color='Warna', text_auto='.2%',
-                     title='Perbandingan Keandalan Komponen dan Sistem',
-                     color_discrete_map={
-                         'Komponen': '#87CEEB',
-                         'Mata Rantai Terlemah': '#FF6347',
-                         'Sistem Total': '#9370DB'
-                     })
-        fig.update_layout(yaxis_range=[min(0.7, min(values)*0.9), 1.01])
-        st.plotly_chart(fig, use_container_width=True)
+        bar_colors = ['#87CEEB'] * len(reliabilities)
+        weakest_idx = list(reliabilities.keys()).index(weakest_link_name)
+        bar_colors[weakest_idx] = '#FF6347'
+        bar_colors.append('#9370DB')
+
+        bars = ax.bar(labels, values, color=bar_colors)
+        
+        ax.set_ylabel('Tingkat Keandalan (Reliability)')
+        ax.set_title('Perbandingan Keandalan Komponen dan Sistem', fontsize=16)
+        ax.set_ylim(min(0.75, min(values) * 0.95 if values else 0.75), 1.01)
+
+        for bar in bars:
+            yval = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2.0, yval, f'{yval:.2%}', ha='center', va='bottom', fontsize=10, color='black')
+            
+        st.pyplot(fig)
         
         with st.container(border=True):
-            st.markdown("**🔍 Cara Membaca Grafik:**")
+            st.markdown("**🔍 Penjelasan Grafik:**")
             st.markdown("""
-            Arahkan kursor pada bar untuk melihat nilai presisi.
-            - **Bar Merah:** Menunjukkan mesin dengan keandalan terendah, yang menjadi **mata rantai terlemah**.
+            Grafik ini menunjukkan bagaimana keandalan setiap mesin mempengaruhi keandalan seluruh lini produksi.
+            - **Bar Biru & Merah:** Menunjukkan keandalan setiap mesin. Bar **merah** adalah mesin dengan keandalan terendah, yang menjadi **mata rantai terlemah**.
             - **Bar Ungu:** Menunjukkan keandalan total sistem. Perhatikan bagaimana nilainya selalu **lebih rendah** dari komponen terlemah sekalipun.
             
-            **Kesimpulan:** Dalam sistem seri, keandalan keseluruhan sangat dipengaruhi oleh komponen yang paling tidak andal.
+            **Kesimpulan:** Dalam sistem seri, keandalan keseluruhan sangat dipengaruhi oleh komponen yang paling tidak andal. Meningkatkan keandalan 'mata rantai terlemah' akan memberikan dampak terbesar pada peningkatan keandalan seluruh lini produksi.
             """)
 
 # --- KONTROL TAB UTAMA ---
