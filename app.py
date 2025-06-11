@@ -11,6 +11,7 @@ st.markdown("Sebuah aplikasi interaktif untuk memahami penerapan model matematik
 # --- SIDEBAR ---
 with st.sidebar:
     st.header("Panduan Aplikasi")
+    st.image("https://cdn-icons-png.flaticon.com/512/2740/2740943.png", width=60)
     st.markdown("""
     Aplikasi ini mendemonstrasikan empat model matematika melalui studi kasus yang relevan dengan industri di Indonesia. Setiap tab menyediakan **analisis, visualisasi, dan wawasan bisnis** yang dapat ditindaklanjuti.
     """)
@@ -327,13 +328,10 @@ def model_antrian():
         """)
         
         with st.container(border=True):
-            st.subheader("📈 Parameter Sistem & Biaya")
+            st.subheader("📈 Parameter Sistem")
             lmbda = st.slider("Tingkat Kedatangan (λ - mobil/jam)", 1, 100, 30)
             mu = st.slider("Tingkat Pelayanan (μ - mobil/jam)", 1, 100, 35)
-            st.divider()
-            Cw = st.number_input("Biaya Menunggu per Pelanggan per Jam (Rp)", min_value=0, value=25000, help="Mewakili kerugian akibat ketidakpuasan pelanggan.")
-            Cs = st.number_input("Biaya Operasional Server per Jam (Rp)", min_value=0, value=50000, help="Mewakili gaji karyawan, listrik, dll.")
-
+            
         with st.expander("Penjelasan Rumus Model: Antrian M/M/1"):
             st.markdown("""
             Model antrian M/M/1 digunakan untuk menganalisis sistem dengan satu server (pelayan). Model ini membantu kita memahami metrik kinerja utama:
@@ -351,16 +349,12 @@ def model_antrian():
 
         rho = lmbda / mu; L = rho / (1 - rho); Lq = (rho**2) / (1 - rho); W = L / lmbda; Wq = Lq / lmbda
         
-        # Perhitungan Biaya
-        total_biaya_menunggu = Lq * Cw
-        total_biaya_layanan = Cs
-        total_biaya_sistem = total_biaya_menunggu + total_biaya_layanan
-
         with st.expander("Lihat Proses Perhitungan"):
             st.latex(fr"\rho = \frac{{{lmbda}}}{{{mu}}} = {rho:.2f} \quad (Utilisasi)")
+            st.latex(fr"L = \frac{{{rho:.2f}}}{{1 - {rho:.2f}}} = {L:.2f} \text{{ mobil di sistem}}")
             st.latex(fr"L_q = \frac{{{rho:.2f}^2}}{{1 - {rho:.2f}}} = {Lq:.2f} \text{{ mobil di antrian}}")
-            st.latex(fr"\text{{Biaya Tunggu}} = L_q \times C_w = {Lq:.2f} \times \text{{Rp }}{Cw:,.0f} = \text{{Rp }}{total_biaya_menunggu:,.0f}")
-            st.latex(fr"\text{{Biaya Total}} = \text{{Biaya Tunggu}} + \text{{Biaya Layanan}} = \text{{Rp }}{total_biaya_menunggu:,.0f} + \text{{Rp }}{Cs:,.0f} = \text{{Rp }}{total_biaya_sistem:,.0f}")
+            st.latex(fr"W = \frac{{{L:.2f}}}{{{lmbda}}} = {W:.3f} \text{{ jam, atau }} {W*60:.2f} \text{{ menit}}")
+            st.latex(fr"W_q = \frac{{{Lq:.2f}}}{{{lmbda}}} = {Wq:.3f} \text{{ jam, atau }} {Wq*60:.2f} \text{{ menit}}")
 
     with col2:
         st.subheader("💡 Hasil dan Wawasan Bisnis")
@@ -369,18 +363,21 @@ def model_antrian():
         
         col1_res, col2_res = st.columns(2)
         with col1_res:
-            st.metric(label="🚗 Rata-rata Panjang Antrian (Lq)", value=f"{Lq:.2f} mobil")
+            st.metric(label="🚗 Rata-rata Mobil di Sistem (L)", value=f"{L:.2f} mobil")
+            st.metric(label="⏳ Rata-rata Total Waktu (W)", value=f"{W*60:.2f} menit")
         with col2_res:
+            st.metric(label="🚗 Rata-rata Panjang Antrian (Lq)", value=f"{Lq:.2f} mobil")
             st.metric(label="⏳ Rata-rata Waktu Tunggu (Wq)", value=f"{Wq*60:.2f} menit")
         
         with st.container(border=True):
-             st.markdown("**Analisis Biaya Total Sistem**")
-             c1, c2, c3 = st.columns(3)
-             c1.metric("Biaya Menunggu", f"Rp {total_biaya_menunggu:,.0f}")
-             c2.metric("Biaya Layanan", f"Rp {total_biaya_layanan:,.0f}")
-             c3.metric("Biaya Total", f"Rp {total_biaya_sistem:,.0f}")
-             st.info("Tujuan manajer adalah menemukan tingkat pelayanan (μ) yang meminimalkan **Biaya Total** ini.")
-
+            st.markdown("**Analisis Kinerja Sistem:**")
+            if rho > 0.85:
+                st.error(f"**Kondisi Kritis!** Tingkat kesibukan **({rho:.1%})** sangat tinggi. Waktu tunggu yang lama dapat menyebabkan pelanggan membatalkan pesanan dan merusak reputasi.")
+            elif rho > 0.7:
+                st.warning(f"**Perlu Diwaspadai.** Tingkat kesibukan **({rho:.1%})** cukup tinggi. Sistem berisiko kewalahan jika ada sedikit lonjakan pelanggan atau perlambatan layanan.")
+            else:
+                st.info(f"**Kinerja Sehat.** Tingkat kesibukan **({rho:.1%})** terkendali. Namun, ini mungkin juga berarti ada kapasitas layanan yang belum termanfaatkan sepenuhnya.")
+            
         st.markdown("#### Visualisasi Kinerja Antrian")
         
         fig1, ax1 = plt.subplots(figsize=(8, 4))
@@ -413,6 +410,13 @@ def model_antrian():
         ax2.set_yticklabels([])
         st.pyplot(fig2)
 
+        with st.container(border=True):
+            st.markdown("**🔍 Penjelasan Grafik:**")
+            st.markdown("""
+            - **Grafik Pie:** Membagi total waktu pelanggan menjadi dua bagian: waktu yang dihabiskan untuk benar-benar dilayani (hijau) dan waktu yang terbuang untuk menunggu dalam antrian (merah). Persentase waktu tunggu yang besar menandakan pengalaman pelanggan yang buruk.
+            - **Grafik Batang:** Menunjukkan probabilitas (kemungkinan) ada sejumlah mobil di dalam sistem. Jika bar di sebelah kanan (misalnya, 5 mobil atau lebih) memiliki nilai yang signifikan, itu berarti antrian panjang sering terjadi.
+            """)
+            
 # --- TAB 4: KEANDALAN LINI PRODUKSI ---
 def model_keandalan_produksi():
     st.header("🔗 Analisis Keandalan Lini Produksi")
