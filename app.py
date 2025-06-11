@@ -54,11 +54,11 @@ def optimasi_produksi():
             - $y$ = Jumlah Kursi
             """)
             st.markdown("**Fungsi Tujuan (Maksimalkan Keuntungan):**")
-            st.latex(r'''Z = (\text{Keuntungan per Meja} \cdot x) + (\text{Keuntungan per Kursi} \cdot y)''')
+            st.latex(r'''Z = (\text{Profit}_{\text{Meja}} \cdot x) + (\text{Profit}_{\text{Kursi}} \cdot y)''')
             
             st.markdown("**Fungsi Kendala (Batasan Sumber Daya):**")
-            st.latex(r'''1. \quad (\text{Jam per Meja} \cdot x) + (\text{Jam per Kursi} \cdot y) \le \text{Total Jam Tersedia}''')
-            st.latex(r'''2. \quad (\text{Kayu per Meja} \cdot x) + (\text{Kayu per Kursi} \cdot y) \le \text{Total Kayu Tersedia}''')
+            st.latex(r'''1. \quad (\text{Jam}_{\text{Meja}} \cdot x) + (\text{Jam}_{\text{Kursi}} \cdot y) \le \text{Total Jam}''')
+            st.latex(r'''2. \quad (\text{Kayu}_{\text{Meja}} \cdot x) + (\text{Kayu}_{\text{Kursi}} \cdot y) \le \text{Total Kayu}''')
             st.latex(r'''3. \quad x \ge 0, y \ge 0''')
 
         with st.expander("Parameter Model (Bisa Diubah)", expanded=True):
