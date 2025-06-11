@@ -385,4 +385,3 @@ with tab4:
 # --- FOOTER ---
 st.divider()
 st.caption("© 2025 TIF208 - Matematika Terapan | Dikembangkan untuk Tugas Kelompok")
-�
