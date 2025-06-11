@@ -132,6 +132,17 @@ def optimasi_produksi():
             st.metric(label="🛠️ Utilisasi Jam Kerja", value=f"{jam_terpakai:.1f} / {total_jam} Jam", help=f"{(jam_terpakai/total_jam):.1%} terpakai")
             st.metric(label="🌲 Utilisasi Kayu Jati", value=f"{kayu_terpakai:.1f} / {total_kayu} Unit", help=f"{(kayu_terpakai/total_kayu):.1%} terpakai")
         
+        with st.container(border=True):
+            st.markdown("**Analisis Sumber Daya (Bottleneck):**")
+            if (total_jam - jam_terpakai) < 1 and (total_kayu - kayu_terpakai) < 1:
+                 st.error("**Kritis!** Kedua sumber daya (jam dan kayu) habis terpakai. Peningkatan kapasitas mutlak diperlukan untuk bertumbuh.")
+            elif (total_jam - jam_terpakai) < 1:
+                st.warning("**Jam Kerja adalah Kendala Utama!** Untuk meningkatkan produksi, fokus utama adalah menambah jam kerja (lembur) atau efisiensi pengrajin.")
+            elif (total_kayu - kayu_terpakai) < 1:
+                st.warning("**Stok Kayu adalah Kendala Utama!** Produksi lebih lanjut dibatasi oleh ketersediaan kayu. Cari pemasok tambahan adalah prioritas.")
+            else:
+                st.info("**Kapasitas Masih Tersedia.** Kedua sumber daya (jam kerja dan kayu) masih tersisa. Ada ruang untuk meningkatkan produksi jika permintaan pasar meningkat.")
+
         st.markdown("#### Visualisasi Daerah Produksi yang Layak")
         fig, ax = plt.subplots(figsize=(10, 5))
         
@@ -219,6 +230,8 @@ def model_persediaan():
             st.latex(fr"TC = \left(\frac{{{D}}}{{{eoq:.2f}}}\right){S} + \left(\frac{{{eoq:.2f}}}{{2}}\right){H} = \text{{Rp }}{total_biaya:,.2f}")
 
         st.divider()
+        
+    with col2:
         st.subheader("💡 Hasil dan Wawasan Bisnis")
         st.success(f"**Kebijakan Optimal:** Pesan **{eoq:.0f} kg** biji kopi setiap kali stok mencapai **{rop:.1f} kg**.")
         
@@ -229,8 +242,16 @@ def model_persediaan():
         with col2_res:
             st.metric(label="💰 Total Biaya Persediaan Tahunan", value=f"Rp {total_biaya:,.0f}")
             st.metric(label="🔄 Siklus Pemesanan", value=f"~{siklus_pemesanan:.1f} hari")
-            
-    with col2:
+
+        with st.container(border=True):
+            st.markdown("**Analisis Kebijakan Persediaan:**")
+            if eoq > (D/4):
+                st.warning("**Frekuensi Pemesanan Rendah.** Anda memesan dalam jumlah besar tetapi jarang. Ini mengurangi biaya pemesanan tetapi meningkatkan biaya penyimpanan. Pastikan Anda memiliki ruang gudang yang cukup.")
+            elif eoq < (D/12):
+                st.info("**Frekuensi Pemesanan Tinggi.** Anda memesan dalam jumlah kecil tetapi sering. Ini efisien dari segi penyimpanan, namun pastikan proses pemesanan Anda tidak memakan banyak waktu dan biaya administrasi.")
+            else:
+                st.success("**Kebijakan Seimbang.** Kuantitas pesanan Anda tampak seimbang, menyeimbangkan antara biaya pesan dan biaya simpan dengan baik.")
+
         st.markdown("#### Visualisasi Analisis Biaya")
         q = np.linspace(max(1, eoq * 0.1), eoq * 2 if eoq > 0 else 200, 100)
         holding_costs = (q / 2) * H
@@ -306,13 +327,11 @@ def model_antrian():
             st.latex(fr"W = \frac{{{L:.2f}}}{{{lmbda}}} = {W:.3f} \text{{ jam, atau }} {W*60:.2f} \text{{ menit}}")
             st.latex(fr"W_q = \frac{{{Lq:.2f}}}{{{lmbda}}} = {Wq:.3f} \text{{ jam, atau }} {Wq*60:.2f} \text{{ menit}}")
 
-        st.divider()
+    with col2:
         st.subheader("💡 Hasil dan Wawasan Bisnis")
 
-        if rho > 0.85: st.warning(f"**Risiko Tinggi:** Utilisasi **({rho:.1%})** sangat tinggi. Antrian panjang dan waktu tunggu lama berisiko membuat pelanggan kecewa.")
-        elif rho > 0.7: st.info(f"**Cukup Sibuk:** Utilisasi **({rho:.1%})** pada tingkat yang sibuk. Kinerja baik, namun perlu diawasi saat jam puncak.")
-        else: st.success(f"**Efisien:** Utilisasi **({rho:.1%})** pada tingkat yang sehat. Sistem mampu menangani pelanggan dengan cepat.")
-
+        st.success(f"**Rekomendasi:** Dengan tingkat pelayanan saat ini, rata-rata pelanggan akan menunggu **{Wq*60:.1f} menit** dalam antrian.")
+        
         col1_res, col2_res = st.columns(2)
         with col1_res:
             st.metric(label="🚗 Rata-rata Mobil di Sistem (L)", value=f"{L:.2f} mobil")
@@ -320,8 +339,16 @@ def model_antrian():
         with col2_res:
             st.metric(label="🚗 Rata-rata Panjang Antrian (Lq)", value=f"{Lq:.2f} mobil")
             st.metric(label="⏳ Rata-rata Waktu Tunggu (Wq)", value=f"{Wq*60:.2f} menit")
+
+        with st.container(border=True):
+            st.markdown("**Analisis Kinerja Sistem:**")
+            if rho > 0.85:
+                st.error(f"**Kondisi Kritis!** Tingkat kesibukan **({rho:.1%})** sangat tinggi. Waktu tunggu yang lama dapat menyebabkan pelanggan membatalkan pesanan dan merusak reputasi.")
+            elif rho > 0.7:
+                st.warning(f"**Perlu Diwaspadai.** Tingkat kesibukan **({rho:.1%})** cukup tinggi. Sistem berisiko kewalahan jika ada sedikit lonjakan pelanggan atau perlambatan layanan.")
+            else:
+                st.info(f"**Kinerja Sehat.** Tingkat kesibukan **({rho:.1%})** terkendali. Namun, ini mungkin juga berarti ada kapasitas layanan yang belum termanfaatkan sepenuhnya.")
             
-    with col2:
         st.markdown("#### Visualisasi Kinerja Antrian")
         
         fig1, ax1 = plt.subplots(figsize=(8, 4))
@@ -399,7 +426,7 @@ def model_keandalan_produksi():
             st.latex(fr"R_s = {r1} \times {r2} \times {r3} \times {r4} = {keandalan_sistem:.4f}")
             st.markdown(f"**Keandalan Sistem ($R_s$)** adalah **{keandalan_sistem:.2%}**.")
 
-        st.divider()
+    with col2:
         st.subheader("💡 Hasil dan Wawasan Bisnis")
         st.warning(f"**Mata Rantai Terlemah:** Mesin **{weakest_link_name}** ({weakest_link_value:.1%}) adalah komponen paling berisiko. Prioritaskan perawatan dan perbaikan pada mesin ini untuk dampak terbesar.")
 
@@ -409,7 +436,16 @@ def model_keandalan_produksi():
         with col2_res:
              st.metric(label="📈 Probabilitas Kegagalan Lini", value=f"{1 - keandalan_sistem:.2%}", delta_color="inverse")
 
-    with col2:
+        with st.container(border=True):
+            st.markdown("**Analisis Dampak Kegagalan:**")
+            dampak = (1 - keandalan_sistem) * 100
+            if dampak > 10:
+                st.error(f"**Sangat Berisiko!** Dengan probabilitas kegagalan **{dampak:.1f}%**, lini produksi ini kemungkinan besar akan sering mengalami henti produksi (downtime), menyebabkan kerugian signifikan.")
+            elif dampak > 5:
+                st.warning(f"**Risiko Menengah.** Probabilitas kegagalan **{dampak:.1f}%** masih cukup tinggi. Perbaikan pada mesin terlemah sangat disarankan untuk menjaga stabilitas produksi.")
+            else:
+                st.info(f"**Risiko Rendah.** Probabilitas kegagalan **{dampak:.1f}%** cukup terkendali. Fokus pada perawatan rutin untuk mempertahankan kinerja.")
+
         st.markdown("#### Visualisasi Dampak Keandalan Komponen")
         
         labels = list(reliabilities.keys())
