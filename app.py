@@ -134,6 +134,7 @@ def optimasi_produksi():
         
         with st.container(border=True):
             st.markdown("**Analisis Sumber Daya (Bottleneck):**")
+            # --- PERUBAHAN: Teks Analisis Diringkas ---
             if (total_jam - jam_terpakai) < 1 and (total_kayu - kayu_terpakai) < 1:
                  st.error("- **Kritis:** Kedua sumber daya (jam dan kayu) habis. Peningkatan kapasitas mutlak diperlukan.")
             elif (total_jam - jam_terpakai) < 1:
@@ -243,6 +244,7 @@ def model_persediaan():
 
         with st.container(border=True):
             st.markdown("**Analisis Kebijakan Persediaan:**")
+            # --- PERUBAHAN: Teks Analisis Diringkas ---
             if eoq > (D/4):
                 st.warning("- **Frekuensi Rendah:** Pesanan dalam jumlah besar tapi jarang. Ini hemat biaya pesan, tapi boros biaya simpan.")
             elif eoq < (D/12):
@@ -273,6 +275,7 @@ def model_persediaan():
         ax.ticklabel_format(style='plain', axis='y')
         st.pyplot(fig)
 
+        # --- PENAMBAHAN: Penjelasan Grafik Analisis Biaya ---
         with st.container(border=True):
              st.markdown("**🔍 Penjelasan Grafik Analisis Biaya:**")
              st.markdown("""
@@ -379,6 +382,7 @@ def model_antrian():
         
         with st.container(border=True):
             st.markdown("**Analisis Kinerja Sistem:**")
+            # --- PERUBAHAN: Teks Analisis Diringkas ---
             if rho > 0.85:
                 st.error(f"- **Kondisi Kritis ({rho:.1%}):** Tingkat kesibukan sangat tinggi. Waktu tunggu yang lama berisiko merusak reputasi.")
             elif rho > 0.7:
@@ -476,6 +480,7 @@ def model_keandalan_produksi():
         with st.container(border=True):
             st.markdown("**Analisis Dampak Kegagalan:**")
             dampak = (1 - keandalan_sistem) * 100
+            # --- PERUBAHAN: Teks Analisis Diringkas ---
             if dampak > 10:
                 st.error(f"- **Sangat Berisiko ({dampak:.1f}%):** Lini produksi kemungkinan besar akan sering berhenti, menyebabkan kerugian signifikan.")
             elif dampak > 5:
