@@ -31,8 +31,7 @@ with st.sidebar:
     Mengevaluasi keandalan sistem dan mengidentifikasi titik rawan kegagalan.
     """)
     st.divider()
-    st.caption("TIF208 - Matematika Terapan | Universitas Pelita Bangsa")
-    st.caption("Versi Revisi untuk Presentasi")
+    st.caption("Teknik Informatika - Matematika Terapan | Universitas Pelita Bangsa")
 
 # --- TAB 1: OPTIMASI PRODUKSI ---
 def optimasi_produksi():
@@ -69,9 +68,12 @@ def optimasi_produksi():
             - $x$ = Jumlah Meja
             - $y$ = Jumlah Kursi
             """)
+
+            # Rumus fungsi utama untuk menentukan keuntungan maksimal
             st.markdown("**Fungsi Tujuan (Maksimalkan Keuntungan):**")
             st.latex(r'''Z = (\text{Profit Meja} \cdot x) + (\text{Profit Kursi} \cdot y)''')
             
+            # Rumus fungsi kendala
             st.markdown("**Fungsi Kendala (Batasan Sumber Daya):**")
             st.latex(r'''1. \quad (\text{Jam Meja} \cdot x) + (\text{Jam Kursi} \cdot y) \le \text{Total Jam}''')
             st.latex(r'''2. \quad (\text{Kayu Meja} \cdot x) + (\text{Kayu Kursi} \cdot y) \le \text{Total Kayu}''')
@@ -208,8 +210,12 @@ def model_persediaan():
             - **TC (Total Biaya):** Penjumlahan dari total biaya pemesanan tahunan dan total biaya penyimpanan tahunan.
             - **ROP (Reorder Point):** Titik stok di mana pemesanan baru harus dilakukan.
             """)
+
+            # Rumus utama EOQ
             st.markdown("**Rumus Utama:**")
             st.latex(r''' Q^* = \sqrt{\frac{2DS}{H}} ''')
+
+            # Rumus Pendukung ROP dan TC
             st.markdown("**Rumus Pendukung:**")
             st.latex(r'''ROP = (\text{Permintaan Harian}) \times \text{Lead Time} + \text{Stok Pengaman}''')
             st.latex(r''' TC = \left(\frac{D}{Q}\right)S + \left(\frac{Q}{2}\right)H ''')
@@ -225,7 +231,8 @@ def model_persediaan():
             siklus_pemesanan = 360 / frekuensi_pesanan if frekuensi_pesanan > 0 else 0
         else:
             eoq = 0; total_biaya = 0; rop = 0; siklus_pemesanan = 0
-            
+
+        # Proses Perhitungan EOQ, ROP, dan TC    
         with st.expander("Lihat Proses Perhitungan"):
             st.markdown(f"**1. Perhitungan EOQ ($Q^*$):**")
             st.latex(fr"Q^* = \sqrt{{\frac{{2 \times {D} \times {S}}}{{{H}}}}} = {eoq:.2f} \text{{ unit}}")
@@ -353,6 +360,8 @@ def model_antrian():
             - **Waktu Tunggu (W, Wq):** Berapa lama rata-rata pelanggan menghabiskan waktu di sistem atau di antrian?
             Model ini mengasumsikan kedatangan pelanggan dan waktu pelayanan mengikuti distribusi Poisson (acak).
             """)
+
+            # Rumus yang digunakan
             st.markdown("**Variabel:** $\lambda$ (Tingkat Kedatangan), $\mu$ (Tingkat Pelayanan)")
             st.latex(r''' \rho = \frac{\lambda}{\mu} \quad | \quad L = \frac{\rho}{1 - \rho} \quad | \quad W = \frac{L}{\lambda} ''')
             
