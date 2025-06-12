@@ -31,7 +31,7 @@ with st.sidebar:
     Mengevaluasi keandalan sistem dan mengidentifikasi titik rawan kegagalan.
     """)
     st.divider()
-    st.caption("Teknik Informatika - Matematika Terapan | Universitas Pelita Bangsa")
+    st.caption("Matematika Terapan | Teknik Informatika - Universitas Pelita Bangsa")
 
 # --- TAB 1: OPTIMASI PRODUKSI ---
 def optimasi_produksi():
