@@ -200,18 +200,20 @@ def model_persediaan():
         
         with st.expander("Penjelasan Rumus Model: Economic Order Quantity (EOQ)"):
             st.markdown("""
-            EOQ adalah model yang digunakan untuk menemukan kuantitas pesanan yang dapat meminimalkan total biaya persediaan. Model ini menyeimbangkan dua jenis biaya yang berlawanan:
-            - **Biaya Pemesanan (S):** Biaya yang dikeluarkan setiap kali memesan barang (misalnya, biaya pengiriman, administrasi). Semakin sering memesan, semakin tinggi biaya ini.
-            - **Biaya Penyimpanan (H):** Biaya untuk menyimpan barang di gudang (misalnya, sewa, asuransi, pendingin). Semakin banyak barang yang disimpan, semakin tinggi biaya ini.
-            - **Total Biaya (TC):** Penjumlahan dari total biaya pemesanan tahunan dan total biaya penyimpanan tahunan.
-            - **Reorder Point (ROP):** Menentukan kapan harus memesan kembali untuk menghindari kehabisan stok.
+            **Variabel Utama:**
+            - **D (Permintaan Tahunan):** Total jumlah unit yang dibutuhkan selama satu tahun.
+            - **S (Biaya Pemesanan):** Biaya tetap yang dikeluarkan setiap kali melakukan pemesanan.
+            - **H (Biaya Penyimpanan):** Biaya untuk menyimpan satu unit barang selama satu tahun.
+            - **Q (Kuantitas Pesanan):** Jumlah unit yang dipesan setiap kali melakukan pemesanan.
+            - **TC (Total Biaya):** Penjumlahan dari total biaya pemesanan tahunan dan total biaya penyimpanan tahunan.
+            - **ROP (Reorder Point):** Titik stok di mana pemesanan baru harus dilakukan.
             """)
             st.markdown("**Rumus Utama:**")
             st.latex(r''' Q^* = \sqrt{\frac{2DS}{H}} ''')
             st.markdown("**Rumus Pendukung:**")
-            st.latex(r''' TC = \left(\frac{D}{Q}\right)S + \left(\frac{Q}{2}\right)H ''')
             st.latex(r'''ROP = (\text{Permintaan Harian}) \times \text{Lead Time} + \text{Stok Pengaman}''')
-        
+            st.latex(r''' TC = \left(\frac{D}{Q}\right)S + \left(\frac{Q}{2}\right)H ''')
+
         if H > 0 and D > 0:
             eoq = math.sqrt((2 * D * S) / H)
             frekuensi_pesanan = D / eoq if eoq > 0 else 0
