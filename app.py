@@ -55,7 +55,7 @@ def optimasi_produksi():
             jam_kursi = st.number_input("Jam Kerja per Kursi", min_value=1.0, value=2.0, step=0.5)
             kayu_meja = st.number_input("Kayu untuk Meja (unit)", min_value=1.0, value=4.0, step=0.5)
             kayu_kursi = st.number_input("Kayu untuk Kursi (unit)", min_value=1.0, value=1.5, step=0.5)
-            total_jam = st.number_input("Total Jam Kerja Tersedia per Minggu", min_value=1, value=240, step=10)
+            total_jam = st.number_input("Total Jam Kerja Tersedia per Bulan", min_value=1, value=240, step=10)
             total_kayu = st.number_input("Total Kayu Jati Tersedia (unit)", min_value=1, value=120, step=10)
             
         with st.expander("Penjelasan Rumus Model: Linear Programming"):
