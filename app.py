@@ -368,7 +368,7 @@ def model_antrian():
         if mu <= lmbda:
             st.error("Tingkat pelayanan (μ) harus lebih besar dari tingkat kedatangan (λ) agar antrian stabil.")
             return
-
+        
         rho = lmbda / mu; L = rho / (1 - rho); Lq = (rho**2) / (1 - rho); W = L / lmbda; Wq = Lq / lmbda
         
         with st.expander("Lihat Proses Perhitungan"):
@@ -465,6 +465,8 @@ def model_keandalan_produksi():
             - **Keandalan (R):** Adalah probabilitas sebuah komponen atau sistem akan berfungsi dengan baik selama periode waktu tertentu.
             - **Sistem Seri:** Komponen-komponen yang tersusun berurutan. Jika salah satu saja gagal, maka seluruh sistem akan gagal. Akibatnya, keandalan sistem seri **selalu lebih rendah** daripada keandalan komponen terlemahnya.
             """)
+
+            # Rumus yang digunakan
             st.latex(r''' R_s = R_1 \times R_2 \times \dots \times R_n = \prod_{i=1}^{n} R_i ''')
 
         reliabilities = {'Stamping': r1, 'Welding': r2, 'Painting': r3, 'Assembly': r4}
@@ -549,4 +551,5 @@ with tab4: model_keandalan_produksi()
 
 # --- FOOTER ---
 st.divider()
-st.caption("© 2025 TIF208 - Matematika Terapan | Dikembangkan untuk Tugas Kelompok")
+st.caption("Fauzi Aditya | Marita Andika Putri | Naufal Khoerul Ibrahim | Poppi Marsanti Ramadani")
+st.caption("© 2025 Kelompok 9 - Matematika Terapan | Dikembangkan untuk Tugas Kelompok")
