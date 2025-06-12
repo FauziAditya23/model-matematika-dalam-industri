@@ -144,6 +144,7 @@ def optimasi_produksi():
             else:
                 st.info("- **Kapasitas Tersedia:** Sumber daya masih ada. Ada ruang untuk meningkatkan produksi jika permintaan meningkat.")
 
+        # Ini code untuk membuat grafiknya
         st.markdown("#### Visualisasi Daerah Produksi yang Layak")
         fig, ax = plt.subplots(figsize=(10, 5))
         
@@ -262,6 +263,7 @@ def model_persediaan():
             else:
                 st.success("- **Kebijakan Seimbang:** Kuantitas pesanan Anda menyeimbangkan biaya pesan dan biaya simpan dengan baik.")
         
+        # Ini code untuk membuat grafik visualisasi analisis biaya
         st.markdown("#### Visualisasi Analisis Biaya")
         q = np.linspace(max(1, eoq * 0.1), eoq * 2 if eoq > 0 else 200, 100)
         holding_costs = (q / 2) * H
@@ -295,6 +297,7 @@ def model_persediaan():
             - **Garis Ungu (EOQ):** Menandai titik di mana kurva total biaya mencapai titik terendahnya. Ini adalah kuantitas pesanan yang paling efisien.
             """)
 
+        # Ini code untuk membuat grafik visualisasi siklus persediaan
         st.markdown("#### Visualisasi Siklus Persediaan")
         fig2, ax2 = plt.subplots(figsize=(10, 5))
         if siklus_pemesanan > 0 and eoq > 0:
@@ -399,7 +402,8 @@ def model_antrian():
                 st.warning(f"- **Perlu Diwaspadai ({rho:.1%}):** Sistem cukup sibuk dan berisiko kewalahan jika ada lonjakan pelanggan.")
             else:
                 st.info(f"- **Kinerja Sehat ({rho:.1%}):** Sistem terkendali, namun mungkin ada kapasitas layanan yang belum termanfaatkan.")
-            
+
+        # Ini code untuk membuat grafik visualisasi kinerja antrian    
         st.markdown("#### Visualisasi Kinerja Antrian")
         
         fig1, ax1 = plt.subplots(figsize=(8, 4))
@@ -415,6 +419,7 @@ def model_antrian():
         ax1.set_title("Bagaimana Pelanggan Menghabiskan Waktunya?")
         st.pyplot(fig1)
 
+        # Ini code untuk membuat grafik visualisasi probabilitas panjang antrian
         st.markdown("#### Probabilitas Panjang Antrian")
         n_values = np.arange(0, 15)
         p_n_values = [(1 - rho) * (rho ** n) for n in n_values]
@@ -499,6 +504,7 @@ def model_keandalan_produksi():
             else:
                 st.info(f"- **Risiko Rendah ({dampak:.1f}%):** Probabilitas kegagalan terkendali. Fokus pada perawatan rutin untuk mempertahankan kinerja.")
 
+        # Ini code untuk membuat grafik visualisasi dampak keandalan komponen
         st.markdown("#### Visualisasi Dampak Keandalan Komponen")
         
         labels = list(reliabilities.keys())
